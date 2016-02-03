@@ -1,22 +1,20 @@
-import redis_client
 import urllib.request
 import json
 
+from rediser import redis
 
 class ContextResolver:
     _RESOLVABLE_KEYS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 28, 33]
     _cache = init_cache()
 
     def __init__(self):
-        self.redis = redis_client.connection
-        self.cache = self.init_cache()
+        self.cache = ContextResolver.init_cache()
 
     # 1,2,3 - cluster, 15 neda sa , 20 - to je cas, 21 - nema vyznam to je strana, 22 sa neda, 23 je hodina,  24 je count, 25 je cislo id itemu, 26 sa neda
     # 27 sa neda, 28 je opat priamy pocet, 29,30,31,32 sa neda, 34-38 sa neda,  39 je vlastne to iste cislo , 41 je id teamu toiste,  42 je to iste status
     # 49 je cas reakcie ot je int, 57 je user to iste
 
     def resolve(self, key, value):
-
         if (str(key) + ':' + str(value)) in self.cache:
             return self.cache[str(key) + ':' + str(value)]
         elif self.resolvable(key):
@@ -32,15 +30,15 @@ class ContextResolver:
 
     def store_resolved_context(self, vector_key, value, value_resolved):
         self.cache[str(vector_key) + ':' + str(value)] = value_resolved
-        return self.redis.set('resolved_context:' + str(vector_key) + ':' + str(value), value_resolved)
+        return redis.set('resolved_context:' + str(vector_key) + ':' + str(value), value_resolved)
 
-    @classmethod
-    def init_cache(cls):
+    @staticmethod
+    def init_cache(self):
         cache = {}
-        keys = self.redis.keys('resolved_context:')
+        keys = redis.keys('resolved_context:')
         for key in keys:
-            value = self.redis.get(key)
-            vector_key, vector_value = self.split_key_name(key)
+            value = redis.get(key)
+            vector_key, vector_value = cls.split_key_name(key)
             cache[str(vector_key) + ':' + str(vector_value)] = value
         return cache
 

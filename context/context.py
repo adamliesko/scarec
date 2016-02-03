@@ -1,11 +1,22 @@
 class Context:
     USABLE_PROPERTIES = []
+    MAPPINGS = {
+        '57': 'user_id',
+        '27': 'publisher_id',
+        '25': 'item_id'
+    }
+
+    MAPPINGS_INV = {
+        'user_id': '57',
+        'item_id': '25',
+        'publisher_id': '27'
+    }
 
     def __init__(self, dict_in):
         self.dict_in = dict_in
         self.dict_out = {}
 
-    def _extract_clustered_content(self,parent_key, dict_in):
+    def _extract_clustered_content(self, parent_key, dict_in):
         for key, value in dict_in.items():
             new_key = parent_key + ':' + key
             if isinstance(value, int):
