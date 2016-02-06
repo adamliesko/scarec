@@ -1,20 +1,11 @@
-import time
 from elasticsearcher import es
 from rediser import redis
-from models import item as item
+from models.item import Item
 
 
 class RecencyRecommender:
-    # tu bude mapping typ, kluc, timestamp
-    INTERVALS = {'1h': {'key': 'most_recent:1h'},
-                 '4h': {},
-                 '24h': {},
-                 '48h': {},
-                 '72h': {}}
-
     @classmethod
-    def most_recent_n(cls, count=30, scale="24h", offset="1h", decay=0.5):
-        current_epoch_time = int(time.time())
+    def most_recent_n(cls, origin_timestamp, count=30, scale="24h", offset="2h", decay=0.5):
         body = {
             "query": {
                 "function_score": {
@@ -22,7 +13,7 @@ class RecencyRecommender:
                         {
                             "gauss": {
                                 "created_at": {
-                                    "origin": current_epoch_time,
+                                    "origin": origin_timestamp,
                                     "offset": offset,
                                     "scale": scale,
                                     "decay": decay
@@ -33,7 +24,7 @@ class RecencyRecommender:
                         {
                             "gauss": {
                                 "updated_at": {
-                                    "origin": current_epoch_time,
+                                    "origin": origin_timestamp,
                                     "offset": offset,
                                     "scale": scale,
                                     "decay": decay
@@ -42,32 +33,30 @@ class RecencyRecommender:
                             "weight": 1
                         },
                     ],
-
                     "score_mode": "multiply",
                     "boost_mode": "multiply",
                 },
-
             },
             "size": count
         }
-        res = es.search(index=item.ES_ITEM_INDEX, body=body)
+        res = es.search(index=Item.ES_ITEM_INDEX, body=body)
         return res['hits']['hits']
 
     @classmethod
-    def most_recent_per_domain_n(cls, domain, count=30, scale="24h", offset="1h", decay=0.5):
-        current_epoch_time = int(time.time())
+    def most_recent_per_attribute_n(cls, origin_timestamp, attribute, attribute_value, count=30, scale="24h",
+                                    offset="2h", decay=0.5):
         body = {
             "query": {
                 "function_score": {
                     "query": {
                         "filtered": {
                             "query": {
-                                "match": {"domainid": int(domain)}}}},
+                                "match": {attribute: attribute_value}}}},
                     "functions": [
                         {
                             "gauss": {
                                 "created_at": {
-                                    "origin": current_epoch_time,
+                                    "origin": origin_timestamp,
                                     "offset": offset,
                                     "scale": scale,
                                     "decay": decay
@@ -78,7 +67,7 @@ class RecencyRecommender:
                         {
                             "gauss": {
                                 "updated_at": {
-                                    "origin": current_epoch_time,
+                                    "origin": origin_timestamp,
                                     "offset": offset,
                                     "scale": scale,
                                     "decay": decay
@@ -87,33 +76,51 @@ class RecencyRecommender:
                             "weight": 1
                         },
                     ],
-
                     "score_mode": "multiply",
                     "boost_mode": "multiply",
                 },
-
             },
             "size": count
         }
-        res = es.search(index=item.ES_ITEM_INDEX, body=body)
+        res = es.search(index=Item.ES_ITEM_INDEX, body=body)
         return res['hits']['hits']
 
     @classmethod
-    def update_recent_articles(cls):
-        pass
+    def update_recent_articles(cls, origin_timestamp):
+        cls.__update_recent_articles_global(origin_timestamp)
+        cls.__update_recent_articles_domains(origin_timestamp)
+        cls.__update_recent_articles_publishers(origin_timestamp)
 
     @classmethod
-    def update_recent_articles_global(cls, time_interval):
-        pass
+    def __update_recent_articles_global(cls, origin_timestamp):
+        key = 'most_recent_articles'
+        articles = cls.most_recent_n(origin_timestamp)
+        r = redis.pipeline()
+        r.delete(key)
+        for article in articles:
+            r.zadd(key, str(article['_id']), article['_score'])
+        r.execute()
 
     @classmethod
-    def update_recent_articles_domains(cls, time_interval):
-        pass
+    def __update_recent_articles_domains(cls, origin_timestamp):
+        domains = redis.hgetall('domains')
+        for domain in domains:
+            key = 'most_recent_articles:domain:' + domain
+            articles = cls.most_recent_per_attribute_n(origin_timestamp, 'domain', domain)
+            r = redis.pipeline()
+            r.delete(key)
+            for article in articles:
+                r.zadd(key, str(article['_id']), article['_score'])
+            r.execute()
 
     @classmethod
-    def update_recent_articles_publisher(cls, time_interval):
-        pass
-
-    @classmethod
-    def update_recent_articles_publisher(cls, time_interval):
-        pass
+    def __update_recent_articles_publishers(cls, origin_timestamp):
+        publishers = redis.hgetall('publishers')
+        for publisher in publishers:
+            key = 'most_recent_articles:publisher:' + publisher
+            articles = cls.most_recent_per_attribute_n(origin_timestamp, 'publisher', publisher)
+            r = redis.pipeline()
+            r.delete(key)
+            for article in articles:
+                r.zadd(key, str(article['_id']), article['_score'])
+            r.execute()
