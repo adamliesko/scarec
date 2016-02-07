@@ -3,6 +3,7 @@ import json
 
 from rediser import redis
 
+
 class ContextResolver:
     _RESOLVABLE_KEYS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 28, 33]
     _cache = init_cache()
@@ -26,7 +27,7 @@ class ContextResolver:
             self.store_resolved_context(key, value, value_resolved)
             return value_resolved
         else:
-            return None #osetrit nvratovu hodnotu pre typ ktory nevieme resolvnut
+            return None  # osetrit nvratovu hodnotu pre typ ktory nevieme resolvnut
 
     def store_resolved_context(self, vector_key, value, value_resolved):
         self.cache[str(vector_key) + ':' + str(value)] = value_resolved
@@ -47,14 +48,12 @@ class ContextResolver:
         return key in cls._RESOLVABLE_KEYS
 
     @staticmethod
-    def split_key_name( key):
-       return key.split(':')[1:]
+    def split_key_name(key):
+        return key.split(':')[1:]
 
 
 a = ContextResolver()
 b = a.resolve(28, 28)
-
-
 
 a = ContextResolver()
 b = a.resolve(28, 28)

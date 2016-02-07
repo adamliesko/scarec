@@ -1,5 +1,6 @@
 import sys
 
+
 def api_key_handler():
     """
     Writes the API key to api_key.txt file. It will create the file if it doesn't exist.

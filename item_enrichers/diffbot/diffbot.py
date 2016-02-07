@@ -16,7 +16,7 @@ class DiffbotEnricher():
     def download_article(cls, url):
         payload = {"url": url, "token": cls.API_KEY, "fields": cls.RESPONSE_FIELDS}
 
-        response = requests.get("http://api.diffbot.com/v3/article", params=payload )
+        response = requests.get("http://api.diffbot.com/v3/article", params=payload)
         if response:
             return response.json()
         else:

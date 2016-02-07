@@ -13,7 +13,11 @@ class KMeansClusterer:
     testData = ssc.textFileStream("/testing/data/dir").map(parse)
 
     model = StreamingKMeans(k=2, decayFactor=1.0).setRandomCenters(3, 1.0, 0)
-    Now register the streams for training and testing and start the job, printing the predicted cluster assignments on new data points as they arrive.
+    Now
+    register
+    the
+    streams
+    for training and testing and start the job, printing the predicted cluster assignments on new data points as they arrive.
 
     model.trainOn(trainingData)
     print(model.predictOnValues(testData.map(lambda lp: (lp.label, lp.features))))

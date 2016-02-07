@@ -19,7 +19,6 @@ test_url = 'http://www.nytimes.com/2013/07/13/us/politics/a-day-of-friction-nota
 
 
 class TestAPI(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         key = os.environ.get('ALCHEMY_API_KEY', None)
@@ -40,7 +39,6 @@ class TestAPI(unittest.TestCase):
         print('Entity tests complete!')
         print('')
 
-
     # Keywords
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_keywords(self):
@@ -55,7 +53,6 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response['status'] == 'ERROR')  # invalid flavor
         print('Keyword tests complete!')
         print('')
-
 
     # Concepts
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
@@ -72,7 +69,6 @@ class TestAPI(unittest.TestCase):
         print('Concept tests complete!')
         print('')
 
-
     # Sentiment
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_sentiment(self):
@@ -88,7 +84,6 @@ class TestAPI(unittest.TestCase):
         print('Sentiment tests complete!')
         print('')
 
-
     # Targeted Sentiment
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_target_sentiment(self):
@@ -101,11 +96,10 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response['status'] == 'OK')
         response = self._api.interface('sentiment_targeted', 'random', test_url, target='Congress')
         self.assertTrue(response['status'] == 'ERROR')  # invalid flavor
-        response = self._api.interface('sentiment_targeted', 'text', test_text,  target=None)
+        response = self._api.interface('sentiment_targeted', 'text', test_text, target=None)
         self.assertTrue(response['status'] == 'ERROR')  # missing target
         print('Targeted sentiment tests complete!')
         print('')
-
 
     # Text
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
@@ -120,7 +114,6 @@ class TestAPI(unittest.TestCase):
         print('Text tests complete!')
         print('')
 
-
     # Text Raw
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_raw(self):
@@ -134,7 +127,6 @@ class TestAPI(unittest.TestCase):
         print('Raw text tests complete!')
         print('')
 
-
     # Author
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_author(self):
@@ -147,7 +139,6 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response['status'] == 'OK')
         print('Author tests complete!')
         print('')
-
 
     # Language
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
@@ -164,7 +155,6 @@ class TestAPI(unittest.TestCase):
         print('Language tests complete!')
         print('')
 
-
     # Title
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_title(self):
@@ -177,7 +167,6 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response['status'] == 'OK')
         print('Title tests complete!')
         print('')
-
 
     # Relations
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
@@ -194,7 +183,6 @@ class TestAPI(unittest.TestCase):
         print('Relation tests complete!')
         print('')
 
-
     # Category
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_category(self):
@@ -210,7 +198,6 @@ class TestAPI(unittest.TestCase):
         print('Category tests complete!')
         print('')
 
-
     # Feeds
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')
     def test_feeds(self):
@@ -223,7 +210,6 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response['status'] == 'OK')
         print('Feed tests complete!')
         print('')
-
 
     # Microformats
     @unittest.skipIf(not os.environ.get('ALCHEMY_API_KEY', None), 'No API Key')

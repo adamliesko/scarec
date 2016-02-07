@@ -15,7 +15,7 @@ TIME_DIFFS = {'1h': 60 * 60,
 def update_popular_articles(time_interval):
     current_timestamp = int(time.time())
     origin_timestamp = current_timestamp - TIME_DIFFS[time_interval]
-    PopularityRecommender.update_popular_articles(current_timestamp, origin_timestamp, time_interval)
+    PopularityRecommender.update_popular_articles(origin_timestamp, time_interval)
 
 
 def update_recent_articles():
@@ -31,7 +31,6 @@ schedule.every(2).hours.do(update_popular_articles, '72h')
 schedule.every(2).hours.do(update_popular_articles, '168h')
 
 schedule.every(1).hour.do(update_recent_articles)
-
 
 while True:
     schedule.run_pending()

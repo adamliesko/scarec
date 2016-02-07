@@ -1,9 +1,7 @@
-
-
 __all__ = ['Auth']
 
-class Auth:
 
+class Auth:
     def __init__(self, key=None):
         self.__key = key
 
@@ -20,4 +18,3 @@ class Auth:
     @property
     def key(self):
         return self.__key
-
