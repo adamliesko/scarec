@@ -1,64 +1,64 @@
-import time
 from elasticsearcher import es
 from rediser import redis
-from models import item as item
 
 
 class PopularityRecommender:
     @classmethod
     def most_popular_n(cls, origin_timestamp, count=30):
-        body = {"size": 0,
-                "query": {
-                    "range": {
-                        "timestamp": {
-                            "gte": origin_timestamp,
-                            "format": "epoch_second||dateOptionalTime"
-                        }
-                    }
-                },
-                "aggs": {
-                    "visits_count": {
-                        "terms": {
-                            "field": "item_id",
-                            "size": count
-                        }
+        body = {
+            "size": 0,
+            "query": {
+                "range": {
+                    "timestamp": {
+                        "gte": origin_timestamp,
+                        "format": "epoch_second||dateOptionalTime"
                     }
                 }
+            },
+            "aggs": {
+                "visits_count": {
+                    "terms": {
+                        "field": "item_id",
+                        "size": count
+                    }
                 }
+            }
+        }
 
         res = es.search(index='impressions', body=body)
         return cls.build_aggs_dict_global(res)
 
     @classmethod
     def most_popular_per_attribute_n(cls, attribute, origin_timestamp, count=30):
-        body = {"size": 0,
-                "query": {
-                    "range": {
-                        "timestamp": {
-                            "gte": origin_timestamp,
-                            "format": "epoch_second||dateOptionalTime"
-                        }
+        body = {
+            "size": 0,
+            "query": {
+                "range": {
+                    "timestamp": {
+                        "gte": origin_timestamp,
+                        "format": "epoch_second||dateOptionalTime"
                     }
-                },
-                "aggs": {
-                    attribute + "_agg_count": {
-                        "terms": {
+                }
+            },
+            "aggs": {
+                attribute + "_agg_count": {
+                    "terms": {
 
-                            "field": attribute
-                        },
-                        "aggs": {
-                            "visits_count": {
-                                "terms": {
-                                    "field": "item_id",
-                                    "size": count
-                                }
-
+                        "field": attribute
+                    },
+                    "aggs": {
+                        "visits_count": {
+                            "terms": {
+                                "field": "item_id",
+                                "size": count
                             }
 
                         }
+
                     }
                 }
-                }
+            }
+        }
         res = es.search(index='impressions', body=body)
         return cls.build_aggs_dict(res, attribute)
 
@@ -83,8 +83,8 @@ class PopularityRecommender:
 
     @classmethod
     def update_popular_articles(cls, origin_timestamp, time_interval):
-        cls.__update_popular_articles_global( origin_timestamp, time_interval)
-        cls.__update_popular_articles_domains(origin_timestamp, time_interval)
+        cls.__update_popular_articles_global(origin_timestamp, time_interval)
+        cls.__update_popular_articles_domains(origin_timestamp, time_interval)  # FIXME: pozro na domeny TODO
         cls.__update_popular_articles_publishers(origin_timestamp, time_interval)
 
     @classmethod
@@ -119,8 +119,8 @@ class PopularityRecommender:
                 r.zadd(key, article, publishers[publisher][article])
             r.execute()
 
-#print(PopularityRecommender.update_popular_articles(137029674, '1h'))
+            # print(PopularityRecommender.update_popular_articles(137029674, '1h'))
 
-# TODO: FIXME: bacha na pomenovanie tych blbych atributov v ES a tuto .. potrebujem tu mat current_timestamp atd?
-# FIXME: pozor na str vs int pri klucoch
-# zabezpecit aby sa tam domena pridavala spravne pri novych clankoch a podobne, aby to nepadlo atd
+            # TODO: FIXME: bacha na pomenovanie tych blbych atributov v ES a tuto .. potrebujem tu mat current_timestamp atd?
+            # FIXME: pozor na str vs int pri klucoch
+            # zabezpecit aby sa tam domena pridavala spravne pri novych clankoch a podobne, aby to nepadlo atd

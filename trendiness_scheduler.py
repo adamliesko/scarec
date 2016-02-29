@@ -1,6 +1,7 @@
 import schedule
 
 import time
+
 from recommenders.recency_recommender import RecencyRecommender
 from recommenders.popularity_recommender import PopularityRecommender
 
@@ -23,18 +24,22 @@ def update_recent_articles():
     RecencyRecommender.update_recent_articles(current_timestamp)
 
 
-schedule.every(1).minute.do(update_popular_articles, '1h')
+schedule.every(10).minutes.do(update_popular_articles, '1h')
 schedule.every(10).minutes.do(update_popular_articles, '4h')
 schedule.every(1).hour.do(update_popular_articles, '24h')
 schedule.every(1).hour.do(update_popular_articles, '48h')
 schedule.every(2).hours.do(update_popular_articles, '72h')
 schedule.every(2).hours.do(update_popular_articles, '168h')
 
-schedule.every(1).hour.do(update_recent_articles)
+schedule.every(10).minutes.do(update_recent_articles)
 
 while True:
-    schedule.run_pending()
-    time.sleep(1)
+    try:
+        schedule.run_pending()
+    except:
+        pass
+    finally:
+        time.sleep(1)
 
 
 # TODO: dat to ako bg procesy, separatne, classa trendiness
