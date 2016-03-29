@@ -9,28 +9,36 @@ class Item:
 
     def __init__(self, content):
         self.content = content
+        self.id = content["id"]
 
     def prepare_for_indexing(self):
         self.parse_timestamp_fields()
         self.store_item_domain_key_pair()
 
-    #just convert ['created_at', 'updated_at', 'published_at'] to the echo timestamp (seconds, not milis)
+    ## just convert ['created_at', 'updated_at', 'published_at'] to the echo timestamp (seconds, not milis)
     def parse_timestamp_fields(self):
         time_fields = ['created_at', 'updated_at', 'published_at']
         for time_attr in time_fields:
             if self.content[time_attr]:
                 self.content[time_attr] = int(time.mktime(time.strptime(self.content[time_attr], "%Y-%m-%d %H:%M:%S")))
 
-    # store item domain_id value to the redis, so that we can retrieve it later when working with user impressions
+    ## store item domain_id value to the redis, so that we can retrieve it later when working with user impressions
     def store_item_domain_key_pair(self):
-        redis.set('item_domain_pairs:' + self.content["id"])
+        redis.set('item_domain_pairs:' + self.id)
 
     def process_item_change_event(self):
-        # TODO: ziskat alchemy a diffbot veci
+        # TODO: ziskat alchemy a.txt diffbot veci
         self.prepare_for_indexing()
         # enriched_content = enricher.Enricher.enrich_article(self.content["url"])
         # print(enriched_content)
-        es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.content, id=self.content["id"])
+        es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.content, id=self.id)
+
+    # query elasticsearch's MLT tool to get n most similar articles to self
+    def search_for_content_similar_items(self, count=30):
+        pass
+
+    # store the most  similar pairs into the similarity sets, both for new and every other article - ranked set
+    def store_most_similar_pair(self, hits):
 
     @classmethod
     def index_properties(cls):

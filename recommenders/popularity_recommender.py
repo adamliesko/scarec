@@ -84,7 +84,7 @@ class PopularityRecommender:
     @classmethod
     def update_popular_articles(cls, origin_timestamp, time_interval):
         cls.__update_popular_articles_global(origin_timestamp, time_interval)
-        cls.__update_popular_articles_domains(origin_timestamp, time_interval)  # FIXME: pozro na domeny TODO
+        cls.__update_popular_articles_domains(origin_timestamp, time_interval)  # FIXME: pozor na domeny TODO
         cls.__update_popular_articles_publishers(origin_timestamp, time_interval)
 
     @classmethod
@@ -121,6 +121,6 @@ class PopularityRecommender:
 
             # print(PopularityRecommender.update_popular_articles(137029674, '1h'))
 
-            # TODO: FIXME: bacha na pomenovanie tych blbych atributov v ES a tuto .. potrebujem tu mat current_timestamp atd?
+            # TODO: FIXME: bacha na pomenovanie tych blbych atributov v ES a.txt tuto .. potrebujem tu mat current_timestamp atd?
             # FIXME: pozor na str vs int pri klucoch
-            # zabezpecit aby sa tam domena pridavala spravne pri novych clankoch a podobne, aby to nepadlo atd
+            # zabezpecit aby sa tam domena pridavala spravne pri novych clankoch a.txt podobne, aby to nepadlo atd

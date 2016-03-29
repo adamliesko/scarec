@@ -140,13 +140,13 @@ class AlchemyAPI:
     def connect(self, endpoint, params, post_data=bytearray()):
         """
         HTTP Request wrapper that is called by the endpoint functions. This function is not intended to be called through an external interface.
-        It makes the call, then converts the returned JSON string into a Python object.
+        It makes the call, then converts the returned JSON string into a.txt Python object.
 
         INPUT:
         url -> the full URI encoded url
 
         OUTPUT:
-        The response, already converted from JSON to a Python object.
+        The response, already converted from JSON to a.txt Python object.
         """
 
         # Add the API Key and set the output mode to JSON

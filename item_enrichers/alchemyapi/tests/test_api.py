@@ -15,7 +15,7 @@ __all__ = ['TestAPI']
 
 test_text = 'Bob broke my heart, and then made up this silly sentence to test the PHP SDK'
 test_html = '<html><head><title>The best SDK Test | AlchemyAPI</title></head><body><h1>Hello World!</h1><p>My favorite language is PHP</p></body></html>'
-test_url = 'http://www.nytimes.com/2013/07/13/us/politics/a-day-of-friction-notable-even-for-a-fractious-congress.html?_r=0'
+test_url = 'http://www.nytimes.com/2013/07/13/us/politics/a.txt-day-of-friction-notable-even-for-a.txt-fractious-congress.html?_r=0'
 
 
 class TestAPI(unittest.TestCase):
