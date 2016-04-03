@@ -24,21 +24,14 @@ class Item:
 
     ## store item domain_id value to the redis, so that we can retrieve it later when working with user impressions
     def store_item_domain_key_pair(self):
-        redis.set('item_domain_pairs:' + self.id)
+        redis.setnx('item_domain_pairs:' + self.id)
 
     def process_item_change_event(self):
-        # TODO: ziskat alchemy a.txt diffbot veci
         self.prepare_for_indexing()
+        # TODO: alchemy & enrichment diffbot
         # enriched_content = enricher.Enricher.enrich_article(self.content["url"])
         # print(enriched_content)
         es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.content, id=self.id)
-
-    # query elasticsearch's MLT tool to get n most similar articles to self
-    def search_for_content_similar_items(self, count=30):
-        pass
-
-    # store the most  similar pairs into the similarity sets, both for new and every other article - ranked set
-    def store_most_similar_pair(self, hits):
 
     @classmethod
     def index_properties(cls):
@@ -49,64 +42,6 @@ class Item:
                         "type": "string", "index": "not_analyzed", "store": "true"
                     },
                     "domaind": {
-                        "type": "integer", "index": "not_analyzed", "store": "true"
-                    },
-                    "title": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "text": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "title_alchemy": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "text_alchemy": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "title_diffbot": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "text_diffbot": {
-                        "type": "string", "analyzer": "german", "store": "true"
-                    },
-                    "created_at": {
-                        "type": "date", "store": "true", "format": "epoch_second||dateOptionalTime"
-                    },
-                    "expires_at": {
-                        "type": "date", "store": "true", "format": "epoch_second||dateOptionalTime"
-                    },
-                    "updated_at": {
-                        "type": "date", "store": "true", "format": "epoch_second||dateOptionalTime"
-                    },
-                    "published_at": {
-                        "type": "date", "format": "epoch_second||dateOptionalTime", "store": "true"
-                    },
-                    "flag": {
-                        "type": "integer", "index": "not_analyzed", "store": "true"
-                    },
-                    "version": {
-                        "type": "integer", "index": "not_analyzed"
-                    },
-                    "img": {
-                        "type": "string", "index": "not_analyzed"
-                    }
-                }
-            }
-        }
-        }
-
-    @classmethod
-    def visit_index_properties(cls):
-        return {"mappings": {
-            "article": {
-                "properties": {
-                    "id": {
-                        "type": "string", "index": "not_analyzed"
-                    },
-                    "url": {
-                        "type": "string", "index": "not_analyzed", "store": "true"
-                    },
-                    "domainid": {
                         "type": "integer", "index": "not_analyzed", "store": "true"
                     },
                     "title": {

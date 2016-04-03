@@ -4,6 +4,14 @@ from rediser import redis
 
 class PopularityRecommender:
     @classmethod
+    def recommend_to_user(cls, user_id, request):
+        pass
+
+    @classmethod
+    def recommend_to_request(cls, request):
+        pass
+
+    @classmethod
     def most_popular_n(cls, origin_timestamp, count=30):
         body = {
             "size": 0,
@@ -82,10 +90,22 @@ class PopularityRecommender:
         return res_dict
 
     @classmethod
-    def update_popular_articles(cls, origin_timestamp, time_interval):
+    def update_popular_articles(cls, origin_timestamp, time_interval,
+                                attributes=['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']):
         cls.__update_popular_articles_global(origin_timestamp, time_interval)
-        cls.__update_popular_articles_domains(origin_timestamp, time_interval)  # FIXME: pozor na domeny TODO
-        cls.__update_popular_articles_publishers(origin_timestamp, time_interval)
+        for attr in attributes:
+            cls.__update_popular_articles_attribute(attr, origin_timestamp, time_interval)
+
+    @classmethod
+    def __update_popular_articles_attribute(cls, attribute, origin_timestamp, time_interval):
+        attribute_values = cls.most_popular_per_attribute_n(attribute, origin_timestamp)
+        for value in attribute_values:
+            key = 'most_popular_articles:' + time_interval + ':' + attribute + ':' + value
+            r = redis.pipeline()
+            r.delete(key)
+            for article in attribute_values[value]:
+                r.zadd(key, article, attribute_values[value][article])
+            r.execute()
 
     @classmethod
     def __update_popular_articles_global(cls, origin_timestamp, time_interval):
@@ -96,31 +116,3 @@ class PopularityRecommender:
         for article_key in articles:
             r.zadd(key, article_key, articles[article_key])
         r.execute()
-
-    @classmethod
-    def __update_popular_articles_domains(cls, origin_timestamp, time_interval):
-        domains = cls.most_popular_per_attribute_n('domain_id', origin_timestamp)
-        for domain in domains:
-            key = 'most_popular_articles:' + time_interval + ':domain:' + domain
-            r = redis.pipeline()
-            r.delete(key)
-            for article in domains[domain]:
-                r.zadd(key, article, domains[domain][article])
-            r.execute()
-
-    @classmethod
-    def __update_popular_articles_publishers(cls, origin_timestamp, time_interval):
-        publishers = cls.most_popular_per_attribute_n('publisher_id', origin_timestamp)
-        for publisher in publishers:
-            key = 'most_popular_articles: ' + time_interval + ':publisher:' + str(publisher)
-            r = redis.pipeline()
-            r.delete(key)
-            for article in publishers[publisher]:
-                r.zadd(key, article, publishers[publisher][article])
-            r.execute()
-
-            # print(PopularityRecommender.update_popular_articles(137029674, '1h'))
-
-            # TODO: FIXME: bacha na pomenovanie tych blbych atributov v ES a.txt tuto .. potrebujem tu mat current_timestamp atd?
-            # FIXME: pozor na str vs int pri klucoch
-            # zabezpecit aby sa tam domena pridavala spravne pri novych clankoch a.txt podobne, aby to nepadlo atd

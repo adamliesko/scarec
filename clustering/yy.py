@@ -15,7 +15,6 @@ sys.path.append("/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6/python")
 os.environ["PYSPARK_PYTHON"] = "/Users/Adam/Py3Env/bin/python"
 
 if __name__ == "__main__":
-
     sc = SparkContext(appName="PythonStreamingDirectKafkaWordCount")
     ssc = StreamingContext(sc, 2)
 

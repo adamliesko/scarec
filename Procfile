@@ -2,3 +2,4 @@
 redis: redis-server redis.conf
 trendiness_updater: python3 trendiness_scheduler.py
 api: gunicorn -w=4 scarec:app
+worker: rq worker

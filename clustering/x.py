@@ -2,11 +2,11 @@ import os
 import sys
 
 # Path for spark source folder
-os.environ['SPARK_HOME']="/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6"
+os.environ['SPARK_HOME'] = "/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6"
 
 # Append pyspark  to Python Path
 sys.path.append("/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6/python")
-os.environ["PYSPARK_PYTHON"]="/Users/Adam/Py3Env/bin/python"
+os.environ["PYSPARK_PYTHON"] = "/Users/Adam/Py3Env/bin/python"
 
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
@@ -15,11 +15,13 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils
 
+
 def parse(lp):
     print(111223)
     label = float(lp[lp.find('(') + 1: lp.find(',')])
     vec = Vectors.dense(lp[lp.find('[') + 1: lp.find(']')].split(','))
     return LabeledPoint(label, vec)
+
 
 # Create a.txt local StreamingContext with two working thread and batch interval of 1 second
 sc = SparkContext("local[2]", "ContextualClusteringSC")

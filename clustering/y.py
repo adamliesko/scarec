@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     ssc.awaitTermination()  # Wait for the computation to terminate
 
-    #print("Final centers: " + str(model.latestModel().centers))
+    # print("Final centers: " + str(model.latestModel().centers))
 
 
     # ideme s dense, budeme dopocitavat
@@ -89,4 +89,4 @@ if __name__ == "__main__":
     # content keywords
     # #USER_PUBLISHER_IMPRESSION
     # po x tisicoh sa posuniem
-# inicializovat dvoma sposobmi, bud random alebo set initial clusters, ktore pred tym stornem do suboru niekde cez model.latestModel.centers()
+    # inicializovat dvoma sposobmi, bud random alebo set initial clusters, ktore pred tym stornem do suboru niekde cez model.latestModel.centers()

@@ -1,16 +1,36 @@
 class Context:
     USABLE_PROPERTIES = []
+    CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'browser', 'isp', 'os', 'geo_user', 'time_weekday',
+                             'do_not_track', 'weather_kind', 'weather', 'geo_publisher', 'lang_user',
+                             'time_to_action', 'geo_user_zip', 'time_hour', 'device_type', 'geo_type']
+
     MAPPINGS = {
         '57': 'user_id',
         '27': 'publisher_id',
-        '25': 'item_id'
+        '25': 'item_id',
+        '11': 'category_id',
+        '10': 'channel_id',
+        '1': 'gender',
+        '2': 'age',
+        '3': 'income',
+        '4': 'browser',
+        '5': 'isp',
+        '6': 'os',
+        '7': 'geo_user',
+        '9': 'time_weekday',
+        '13': 'do_not_track',
+        '14': 'weather_kind',
+        '15': 'weather',
+        '16': 'geo_publisher',
+        '17': 'lang_user',
+        '20': 'time_to_action',
+        '22': 'geo_user_zip',
+        '23': 'time_hour',
+        '47': 'device_type',
+        '48': 'geo_type'
     }
 
-    MAPPINGS_INV = {
-        'user_id': '57',
-        'item_id': '25',
-        'publisher_id': '27',
-    }
+    MAPPINGS_INV = inv_map = {v: k for k, v in MAPPINGS.items()}
 
     def __init__(self, dict_in):
         self.dict_in = dict_in
@@ -48,4 +68,6 @@ class Context:
         self.dict_out['timestamp'] = self.dict_in['timestamp']
         return self.dict_out
 
-# toto bude content, ktory neskor budem vediet resolvovat aj
+    @classmethod
+    def context_to_clustering_input(cls, context):
+        return ContextEncoder.encode_context_to_vec(context)
