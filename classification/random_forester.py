@@ -3,6 +3,7 @@ from pyspark.mllib.util import MLUtils
 
 
 class RandomForester:
+sc = SparkContext(appName="RandomForestJob")
 
 
 # Load and parse the data file into an RDD of LabeledPoint.

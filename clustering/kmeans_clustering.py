@@ -5,12 +5,6 @@ import json
 
 # Append pyspark to Python Path
 sys.path.append(os.environ.get('SPARK_PYTHON'))
-KMEANS_CLUSTERING_MODEL_PATH = os.environ.get('KMEANS_CLUSTERING_MODEL_PATH')
-KMEANS_KAFKA_TOPIC = os.environ.get('KMEANS_KAFKA_TOPIC')
-KAFKA_SERVER = os.environ.get('KAFKA_SERVER')
-KMEANS_DIM = os.environ.get('KEMANS_DIM')
-KMEANS_K = os.environ.get('KMEANS_K')
-KMEANS_DECAY_FACTOR = os.environ.get('KMEANS_DECAY_FACTOR')
 
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
@@ -18,10 +12,20 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.streaming.kafka import KafkaUtils
 from pyspark.mllib.clustering import StreamingKMeans
 
+import os
+
+class KmeansSettings:
+    KMEANS_CLUSTERING_MODEL_PATH = os.environ.get('KMEANS_CLUSTERING_MODEL_PATH')
+    KMEANS_KAFKA_TOPIC = 'my-topic'  # os.environ.get('KMEANS_KAFKA_TOPIC')
+    KAFKA_SERVER = 'localhost:9092'  # os.environ.get('KAFKA_SERVER')
+    KMEANS_DIM = 50000  # os.environ.get('KEMANS_DIM')
+    KMEANS_K = 100  # os.environ.get('KMEANS_K')
+    KMEANS_DECAY_FACTOR = 0.9  # os.environ.get('KMEANS_DECAY_FACTOR')
+
 
 class KmeansClustering:
     def __init__(self, k, dim, decay_factor):
-        model_path = KMEANS_CLUSTERING_MODEL_PATH
+        model_path = KmeansSettings.KMEANS_CLUSTERING_MODEL_PATH
         self.requests_processed = 0
         if model_path and os.path.exists(self.model_path):  # stored model initialization
             self.model = self.init_model_from_stored_centers(k, dim, decay_factor)
@@ -61,10 +65,9 @@ class KmeansClustering:
 
 
 if __name__ == "__main__":
-    print(os.environ.get('KMEANS_K'))
     sc = SparkContext(appName="StreamingKMeansClustering")
     ssc = StreamingContext(sc, 1)
-    clustering = KmeansClustering(KMEANS_K, KMEANS_DIM, KMEANS_DECAY_FACTOR)
+    clustering = KmeansClustering(KmeansSettings.KMEANS_K, KmeansSettings.KMEANS_DIM, KmeansSettings.KMEANS_DECAY_FACTOR)
     model = clustering.model
     log4jLogger = sc._jvm.org.apache.log4j
     LOGGER = log4jLogger.LogManager.getLogger('KmeansClustering')
@@ -75,7 +78,7 @@ if __name__ == "__main__":
     model.trainOn(trainingStream)
 
     # our prediction stream
-    directKafkaStream = KafkaUtils.createDirectStream(ssc, [KMEANS_KAFKA_TOPIC], {"bootstrap.servers": KAFKA_SERVER})
+    directKafkaStream = KafkaUtils.createDirectStream(ssc, [KmeansSettings.KMEANS_KAFKA_TOPIC], {"bootstrap.servers": KmeansSettings.KAFKA_SERVER})
     predictionStream = directKafkaStream.map(clustering.pre_process_request)
 
     # predictions
@@ -88,21 +91,3 @@ if __name__ == "__main__":
     # ssc.awaitTermination()  # Wait for the computation to terminate
 
     print("Final centers: " + str(model.latestModel().centers))
-
-    # ideme s dense, budeme dopocitavat
-    # gender 10
-    # age 6
-    # income 5
-    # os
-    # isp
-    # geo user
-    # LANG_USER
-    # channel
-    # category
-    # weather
-    # time of day
-    # DEVICE_TYPE
-    # content keywords
-    # #USER_PUBLISHER_IMPRESSION
-    # po x tisicoh sa posuniem
-    # inicializovat dvoma sposobmi, bud random alebo set initial clusters, ktore pred tym stornem do suboru niekde cez model.latestModel.centers()
