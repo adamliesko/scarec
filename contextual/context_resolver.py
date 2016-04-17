@@ -3,7 +3,6 @@ import json
 
 from rediser import redis
 
-
 class ContextResolver:
     _RESOLVER_URL = 'http://orp.plista.com/api/vector_resolution.php'
     _RESOLVABLE_KEYS = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 28, 33]

@@ -2,7 +2,6 @@ import json
 from settings import KmeansSettings
 from kafka import KafkaConsumer, KafkaProducer
 
-
 class ClusteringConsumer:
     producer = KafkaProducer(client_id='scarec-kmeans-producer', bootstrap_servers=KmeansSettings.KAFKA_SERVER)
 

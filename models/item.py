@@ -1,5 +1,6 @@
 from elasticsearcher import es
 from rediser import redis
+from item_enrichers.enricher import Enricher
 import time
 
 
@@ -13,24 +14,32 @@ class Item:
 
     def prepare_for_indexing(self):
         self.parse_timestamp_fields()
-        self.store_item_domain_key_pair()
 
-    ## just convert ['created_at', 'updated_at', 'published_at'] to the echo timestamp (seconds, not milis)
+    # just convert ['created_at', 'updated_at', 'published_at'] to the echo timestamp (seconds, not milis)
     def parse_timestamp_fields(self):
         time_fields = ['created_at', 'updated_at', 'published_at']
         for time_attr in time_fields:
             if self.content[time_attr]:
                 self.content[time_attr] = int(time.mktime(time.strptime(self.content[time_attr], "%Y-%m-%d %H:%M:%S")))
 
-    ## store item domain_id value to the redis, so that we can retrieve it later when working with user impressions
+    # store item domain_id value to the redis, so that we can retrieve it later when working with user impressions
     def store_item_domain_key_pair(self):
-        redis.setnx('item_domain_pairs:' + self.id)
+        key = 'item_domain_pairs:' + self.id
+        domain = redis.get(key)
+        if domain:
+            return False
+        else:
+            domain_id = self.content['domainid']
+            redis.set('item_domain_pairs:' + self.id, domain_id)
+            return True
 
+    # handle both update/create actions for item
     def process_item_change_event(self):
         self.prepare_for_indexing()
-        # TODO: alchemy & enrichment diffbot
-        # enriched_content = enricher.Enricher.enrich_article(self.content["url"])
-        # print(enriched_content)
+        new_domain = self.store_item_domain_key_pair()
+        if new_domain:
+            enriched_content = Enricher.enrich_article(self.content["url"])
+            # TODO: add enriched content to the to be indexed item body
         es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.content, id=self.id)
 
     @classmethod
@@ -41,7 +50,7 @@ class Item:
                     "publisher": {
                         "type": "string", "index": "not_analyzed", "store": "true"
                     },
-                    "domaind": {
+                    "domain_id": {
                         "type": "integer", "index": "not_analyzed", "store": "true"
                     },
                     "title": {

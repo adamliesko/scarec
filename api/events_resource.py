@@ -17,5 +17,4 @@ class EventsResource:
         impression = Impression(data)
         impression.persist_impression()
         Impression.predict_context_cluster(impression)
-        # async processing to be self.queue_impression_clustering.enqueue(Impression.predict_context_cluster(impression))
         resp.status = falcon.HTTP_200

@@ -1,8 +1,10 @@
 class Context:
     USABLE_PROPERTIES = []
-    CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'browser', 'isp', 'os', 'geo_user', 'time_weekday',
-                             'do_not_track', 'weather_kind', 'weather', 'geo_publisher', 'lang_user',
-                             'time_to_action', 'geo_user_zip', 'time_hour', 'device_type', 'geo_type']
+    # CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'browser', 'isp', 'os', 'geo_user', 'time_weekday',
+    #                          'do_not_track', 'weather_kind', 'weather', 'geo_publisher', 'lang_user',
+    #                          'geo_user_zip', 'time_hour', 'device_type', 'geo_type']
+
+    CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'time_weekday', 'do_not_track', 'weather_kind', 'lang_user', 'time_hour', 'device_type']
 
     MAPPINGS = {
         '57': 'user_id',
@@ -56,18 +58,17 @@ class Context:
     def extract_to_json(self):
         self.dict_out["recs"] = self.dict_in["recs"]["ints"]["3"]
         self.dict_out["recs"] = self.dict_in["timestamp"]
-        for key, value in self.dict_in["context"]["simple"].items():
-            self.dict_out[key] = value
-        for key, value in self.dict_in['context']['lists'].items():
-            self.dict_out[key] = value
-        for key, value in self.dict_in['context']['clusters'].items():
-            if isinstance(value, dict):
-                self.dict_out = self._extract_clustered_content(key, value)
-            elif isinstance(value, list):
-                self.dict_out = self._extract_list_with_seq_keys(key, value)
-        self.dict_out['timestamp'] = self.dict_in['timestamp']
+        if self.dict_in['context']['simple']:
+            for key, value in self.dict_in["context"]["simple"].items():
+                self.dict_out[key] = value
+        if self.dict_in['context']['lists']:
+            for key, value in self.dict_in['context']['lists'].items():
+                self.dict_out[key] = value
+        if self.dict_in['context']['clusters']:
+            for key, value in self.dict_in['context']['clusters'].items():
+                if isinstance(value, dict):
+                    self.dict_out = self._extract_clustered_content(key, value)
+                elif isinstance(value, list):
+                    self.dict_out = self._extract_list_with_seq_keys(key, value)
+            self.dict_out['timestamp'] = self.dict_in['timestamp']
         return self.dict_out
-
-    @classmethod
-    def context_to_clustering_input(cls, context):
-        return ContextEncoder.encode_context_to_vec(context)

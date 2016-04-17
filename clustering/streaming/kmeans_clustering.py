@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import sys
 import json
-
+import numpy
 # Append pyspark to Python Path
 sys.path.append(os.environ.get('SPARK_PYTHON'))
 
@@ -18,8 +18,8 @@ class KmeansSettings:
     KMEANS_CLUSTERING_MODEL_PATH = os.environ.get('KMEANS_CLUSTERING_MODEL_PATH')
     KMEANS_KAFKA_TOPIC = 'my-topic'  # os.environ.get('KMEANS_KAFKA_TOPIC')
     KAFKA_SERVER = 'localhost:9092'  # os.environ.get('KAFKA_SERVER')
-    KMEANS_DIM = 50000  # os.environ.get('KEMANS_DIM')
-    KMEANS_K = 100  # os.environ.get('KMEANS_K')
+    KMEANS_DIM = 10  # os.environ.get('KEMANS_DIM')
+    KMEANS_K = 10  # os.environ.get('KMEANS_K')
     KMEANS_DECAY_FACTOR = 0.9  # os.environ.get('KMEANS_DECAY_FACTOR')
 
 
@@ -50,7 +50,11 @@ class KmeansClustering:
     def labeled_point_from_json(json_request):
         label = json_request['request_id']
         vec = json_request['values']
-        return LabeledPoint(label, vec)
+        #vec_with_zeroes = numpy.zeros(KmeansSettings.KMEANS_DIM)
+       # for idx in vec:
+        #    vec_with_zeroes[idx] = 1
+        #    print('xxx')
+        return LabeledPoint(label, vec.tolist())
 
     @classmethod
     def post_process_request(cls, prediction):

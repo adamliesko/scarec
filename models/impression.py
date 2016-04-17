@@ -1,10 +1,11 @@
+import time
+
 from elasticsearcher import es
 from rediser import redis
 from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
-from clustering.clustering_producer import ClusteringProducer
-
-import time
+from clustering.streaming.clustering_producer import ClusteringProducer
+from clustering.clustering_model import ClusteringModel
 
 
 # FIRST_TIME_SETUP: es.indices.create(index=Impression.ES_ITEM_INDEX, body=Impression.index_properties())
@@ -91,6 +92,15 @@ class Impression:
             self.id = res['_id']
 
     @classmethod
+    def user_impressions(cls, user_id):
+        key = 'user_impressions:' + str(user_id)
+        impressions = redis.zrange(key, 0, -1, True, withscores=True)
+        return impressions
+
+    @classmethod
     def predict_context_cluster(cls, impression):
-        context_vec = ContextEncoder.encode_context_to_vec(impression.extracted_content)
-        ClusteringProducer.clusterize_request(impression.id, context_vec, 'impression')
+        context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
+        cluster = ClusteringModel.predict_cluster(context_vec)
+
+        return cluster
+        # ClusteringProducer.clusterize_request(impression.id, context_vec, 'impression')

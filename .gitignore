@@ -8,7 +8,7 @@ __pycache__/
 *.so
 
 dump.rdb
-
+clustering/kmeans_clusterin*
 # Distribution / packaging
 .Python
 env/

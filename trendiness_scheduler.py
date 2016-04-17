@@ -18,7 +18,6 @@ def update_popular_articles(time_interval):
     origin_timestamp = current_timestamp - TIME_DIFFS[time_interval]
     PopularityRecommender.update_popular_articles(origin_timestamp, time_interval)
 
-
 def update_recent_articles():
     current_timestamp = int(time.time())
     RecencyRecommender.update_recent_articles(current_timestamp)
