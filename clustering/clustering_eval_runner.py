@@ -73,7 +73,7 @@ def create_dense_vector( line):
         hashed_context = context.extract_to_json()
         return ContextEncoder.encode_context_to_dense_vec(hashed_context)
 
-def convert_file_to_sparse_contextual_vectors( input=INPUT_PATH, output=OUTPUT_RDD_FILE_PATH):
+def convert_file_to_sparse_contextual_vectors(input=INPUT_PATH, output=OUTPUT_RDD_FILE_PATH):
         data = sc.textFile(input)
         # data.persist()
         data.map(lambda line: create_sparse_vector(line)).saveAsTextFile(output)
