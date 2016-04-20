@@ -1,6 +1,6 @@
 from elasticsearcher import es
 from rediser import redis
-#from item_enrichers.enricher import Enricher
+# from item_enrichers.enricher import Enricher
 import time
 
 
@@ -11,6 +11,7 @@ class Item:
     def __init__(self, content):
         self.content = content
         self.id = content["id"]
+        self.content['domain_id'] = self.content['domainid']
 
     def prepare_for_indexing(self):
         self.parse_timestamp_fields()

@@ -4,7 +4,10 @@ from recommenders.popularity_recommender import PopularityRecommender
 
 class RecommenderFacade:
     @classmethod
-    def recommend_to_user(cls, user_id, data, algorithm, time_interval):
+    def recommend_to_user(cls, recommendation_rec, algorithm, time_interval):
+        user_id = recommendation_rec.user_id
+        data = recommendation_rec.body
+        limit = recommendation_rec.limit
         if algorithm == 'popular_global':
             recommendations = cls.recommend_popular_global(time_interval)
         else:
@@ -19,11 +22,11 @@ class RecommenderFacade:
             final_recommendations = recommendations
 
         if len(final_recommendations) > 0:
-            recommended_article = final_recommendations[0]
+            recommended_articles = final_recommendations[0:limit]
         else:
             global_most_popular = cls.recommend_popular_global(time_interval)
-            recommended_article = global_most_popular[0]
-        return recommended_article
+            recommended_articles = global_most_popular[0:limit]
+        return recommended_articles
 
     @classmethod
     def recommend_popular_global(cls, ti):

@@ -1,8 +1,8 @@
 import os
-from pyspark.mllib.recommendation import ALS
-
 import logging
 import time
+
+from pyspark.mllib.recommendation import ALS
 from rediser import redis
 
 logging.basicConfig(level=logging.INFO)
@@ -10,16 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class CollaborativeRecommenderEngine:
-
     def __train_model(self):
         """Train the ALS model with the current dataset
         """
         logger.info("Running __train_model")
         start = time.time()
         self.model = ALS.trainImplicit(self.ratings_RDD, self.rank, seed=self.seed,
-                               iterations=self.iterations, lambda_=self.regularization_parameter)
-        logger.info("Run of __train_model finished, took: ", time.time()-start)
-
+                                       iterations=self.iterations, lambda_=self.regularization_parameter)
+        logger.info("Run of __train_model finished, took: ", time.time() - start)
 
     def __predict_visits(self, user_id_article_id_rdd):
         """Gets predictions for a given (user_id, article_id) formatted RDD
@@ -29,7 +27,7 @@ class CollaborativeRecommenderEngine:
         predictions_conf_rdd = predictions_rdd.map(lambda x: (x.article, x.rating))
 
         return predictions_conf_rdd
-    
+
     def add_visits(self, visits):
         """Add additional movie ratings in the format (user_id, movie_id, rating)
         """
@@ -37,8 +35,8 @@ class CollaborativeRecommenderEngine:
         new_visits_rdd = self.sc.parallelize(visits)
         # Add new ratings to the existing ones
         self.visits_RDD = self.visits_rdd.union(new_visits_rdd)
-       # self.__train_model() - when to do it, on the fly swap etc
-        
+        # self.__train_model() - when to do it, on the fly swap etc
+
         return visits
 
     def get_prediction_for_article_ids(self, user_id, article_ids):
@@ -50,7 +48,7 @@ class CollaborativeRecommenderEngine:
         predictions = self.__predict_visits(requested_articles_rdd).collect()
 
         return predictions
-    
+
     def get_top_recommendations(self, user_id, articles_count):
         """ Recommends up to articles count top unseen articles to user_id. Recency comes into play - picking up only N most recent fresh articles.
         """
@@ -65,7 +63,8 @@ class CollaborativeRecommenderEngine:
         user_unseen_articles_rdd = [(user_id, article_id) for article_id in user_unseen_articles_ids]
 
         # Get predicted confidence
-        recommendations = self.__predict_visits(user_unseen_articles_rdd).takeOrdered(articles_count, key=lambda x: -x[1])
+        recommendations = self.__predict_visits(user_unseen_articles_rdd).takeOrdered(articles_count,
+                                                                                      key=lambda x: -x[1])
 
         return recommendations
 

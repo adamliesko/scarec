@@ -1,8 +1,9 @@
 from __future__ import print_function
 
 import collections
-import requests
 import sys
+
+import requests
 
 from .compat import urlencode
 from .auth import Auth

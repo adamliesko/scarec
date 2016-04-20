@@ -1,3 +1,7 @@
+import json
+import os
+import sys
+
 from clustering.clustering_spark_context import sc
 from pyspark.mllib.util import MLUtils
 from clustering.clustering_evaluator import ClusteringEvaluator
@@ -6,23 +10,11 @@ from contextual import Context
 from contextual import ContextEncoder
 from rediser import redis
 
-import json
-import os
-import sys
-
 SEED = 13
 
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/contextual.zip")
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/rediser.py")
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/clustering/clustering_evaluator.py")
-# Path for spark source folder
-os.environ['SPARK_HOME'] = "/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6"
-
-# Append pyspark  to Python Path
-sys.path.append("/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6/python")
-os.environ["PYSPARK_PYTHON"] = "/Users/Adam/Py3Env/bin/python"
-os.environ['PYTHONPATH'] = '/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6/'
-
 
 class ClusteringEvalRunner:
     OUTPUT_RDD_FILE_PATH = "/Users/Adam/PLISTA_DATASET/cross_validation"
@@ -61,30 +53,33 @@ class ClusteringEvalRunner:
 INPUT_PATH = "/Users/Adam/PLISTA_DATASET/clustering_eval/click*"
 OUTPUT_RDD_FILE_PATH = "/Users/Adam/PLISTA_DATASET/eval_rdd_labeled_points_300_dense_clicks"
 
-def create_sparse_vector( line):
-        dictie = json.loads(line)
-        context = Context(dictie)
-        hashed_context = context.extract_to_json()
-        return ContextEncoder.encode_context_to_sparse_vec(hashed_context)
 
-def create_dense_vector( line):
-        dictie = json.loads(line)
-        context = Context(dictie)
-        hashed_context = context.extract_to_json()
-        return ContextEncoder.encode_context_to_dense_vec(hashed_context)
+def create_sparse_vector(line):
+    dictie = json.loads(line)
+    context = Context(dictie)
+    hashed_context = context.extract_to_json()
+    return ContextEncoder.encode_context_to_sparse_vec(hashed_context)
+
+
+def create_dense_vector(line):
+    dictie = json.loads(line)
+    context = Context(dictie)
+    hashed_context = context.extract_to_json()
+    return ContextEncoder.encode_context_to_dense_vec(hashed_context)
+
 
 def convert_file_to_sparse_contextual_vectors(input=INPUT_PATH, output=OUTPUT_RDD_FILE_PATH):
-        data = sc.textFile(input)
-        # data.persist()
-        data.map(lambda line: create_sparse_vector(line)).saveAsTextFile(output)
-
-def convert_file_to_dense_contextual_vectors( input=INPUT_PATH, output=OUTPUT_RDD_FILE_PATH):
-        data = sc.textFile(input)
-        # data.persist()
-        data.map(lambda line: create_dense_vector(line)).saveAsTextFile(output)
+    data = sc.textFile(input)
+    # data.persist()
+    data.map(lambda line: create_sparse_vector(line)).saveAsTextFile(output)
 
 
-convert_file_to_dense_contextual_vectors()
+def convert_file_to_dense_contextual_vectors(input=INPUT_PATH, output=OUTPUT_RDD_FILE_PATH):
+    data = sc.textFile(input)
+    # data.persist()
+    data.map(lambda line: create_dense_vector(line)).saveAsTextFile(output)
 
-#ClusteringEvalRunner.run_eval("/Users/Adam/PLISTA_DATASET/eval_rdd_labeled_points", 1, 1)
 
+#convert_file_to_dense_contextual_vectors()
+
+# ClusteringEvalRunner.run_eval("/Users/Adam/PLISTA_DATASET/eval_rdd_labeled_points", 1, 1)

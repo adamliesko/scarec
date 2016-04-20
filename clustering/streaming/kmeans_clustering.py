@@ -2,7 +2,6 @@ from __future__ import print_function
 import os
 import sys
 import json
-import numpy
 # Append pyspark to Python Path
 sys.path.append(os.environ.get('SPARK_PYTHON'))
 
@@ -13,6 +12,7 @@ from pyspark.streaming.kafka import KafkaUtils
 from pyspark.mllib.clustering import StreamingKMeans
 
 import os
+
 
 class KmeansSettings:
     KMEANS_CLUSTERING_MODEL_PATH = os.environ.get('KMEANS_CLUSTERING_MODEL_PATH')
@@ -50,8 +50,8 @@ class KmeansClustering:
     def labeled_point_from_json(json_request):
         label = json_request['request_id']
         vec = json_request['values']
-        #vec_with_zeroes = numpy.zeros(KmeansSettings.KMEANS_DIM)
-       # for idx in vec:
+        # vec_with_zeroes = numpy.zeros(KmeansSettings.KMEANS_DIM)
+        # for idx in vec:
         #    vec_with_zeroes[idx] = 1
         #    print('xxx')
         return LabeledPoint(label, vec.tolist())
@@ -71,7 +71,8 @@ class KmeansClustering:
 if __name__ == "__main__":
     sc = SparkContext(appName="StreamingKMeansClustering")
     ssc = StreamingContext(sc, 1)
-    clustering = KmeansClustering(KmeansSettings.KMEANS_K, KmeansSettings.KMEANS_DIM, KmeansSettings.KMEANS_DECAY_FACTOR)
+    clustering = KmeansClustering(KmeansSettings.KMEANS_K, KmeansSettings.KMEANS_DIM,
+                                  KmeansSettings.KMEANS_DECAY_FACTOR)
     model = clustering.model
     log4jLogger = sc._jvm.org.apache.log4j
     LOGGER = log4jLogger.LogManager.getLogger('KmeansClustering')
@@ -82,7 +83,8 @@ if __name__ == "__main__":
     model.trainOn(trainingStream)
 
     # our prediction stream
-    directKafkaStream = KafkaUtils.createDirectStream(ssc, [KmeansSettings.KMEANS_KAFKA_TOPIC], {"bootstrap.servers": KmeansSettings.KAFKA_SERVER})
+    directKafkaStream = KafkaUtils.createDirectStream(ssc, [KmeansSettings.KMEANS_KAFKA_TOPIC],
+                                                      {"bootstrap.servers": KmeansSettings.KAFKA_SERVER})
     predictionStream = directKafkaStream.map(clustering.pre_process_request)
 
     # predictions

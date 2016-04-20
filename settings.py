@@ -1,5 +1,6 @@
 import os
 
+
 class KmeansSettings:
     KMEANS_CLUSTERING_MODEL_PATH = os.environ.get('KMEANS_CLUSTERING_MODEL_PATH')
     KMEANS_KAFKA_TOPIC = 'my-topic'  # os.environ.get('KMEANS_KAFKA_TOPIC')

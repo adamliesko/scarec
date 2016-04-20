@@ -1,6 +1,6 @@
-import schedule
-
 import time
+
+import schedule
 
 from recommenders.recency_recommender import RecencyRecommender
 from recommenders.popularity_recommender import PopularityRecommender
@@ -17,6 +17,7 @@ def update_popular_articles(time_interval):
     current_timestamp = int(time.time())
     origin_timestamp = current_timestamp - TIME_DIFFS[time_interval]
     PopularityRecommender.update_popular_articles(origin_timestamp, time_interval)
+
 
 def update_recent_articles():
     current_timestamp = int(time.time())
@@ -35,10 +36,9 @@ schedule.every(10).minutes.do(update_recent_articles)
 while True:
     try:
         schedule.run_pending()
-    except:
+    except Exception:
         pass
     finally:
         time.sleep(1)
 
-
-# TODO: dat to ako bg procesy, separatne, classa trendiness
+# TODO: use background processes, separate class

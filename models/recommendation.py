@@ -1,5 +1,3 @@
-import time
-
 from elasticsearcher import es
 from rediser import redis
 from contextual.context import Context
@@ -7,17 +5,11 @@ from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
 
 
-# FIRST_TIME_SETUP: es.indices.create(index=Impression.ES_ITEM_INDEX, body=Impression.index_properties())
-# print(es.index(index=Impression.ES_ITEM_INDEX, doc_type=Impression.ES_ITEM_TYPE,
-#               body={'item_id': 1283210663, 'channel_id': [6, 13], 'timestamp': 1370296799, 'category_id': [1201425],
-#                     'publisher_id': 59436, 'user_id': 18741214652}))
-
-
-class Impression:
-    ES_ITEM_INDEX = 'impressions'
-    ES_ITEM_TYPE = 'impression'
+class Recommendation:
+    ES_ITEM_INDEX = 'recommendations'
+    ES_ITEM_TYPE = 'recommendation'
     PROPERTIES_TO_EXTRACT_AND_STORE = ['user_id', 'publisher_id', 'channel_id', 'category_id', 'item_id']
-    PROPERTIES = PROPERTIES_TO_EXTRACT_AND_STORE + ['cluster_id', 'timestamp']
+    PROPERTIES = PROPERTIES_TO_EXTRACT_AND_STORE + ['timestamp']
 
     @classmethod
     def index_properties(cls):
@@ -48,6 +40,9 @@ class Impression:
                         },
                         "timestamp": {
                             "type": "date", "store": "true", "format": "epoch_second||dateOptionalTime"
+                        },
+                        "limit": {
+                            "type": "integer", "index": "not_analyzed", "store": "true"
                         }
                     }
                 }
@@ -60,12 +55,15 @@ class Impression:
         self.content = content
         self.extracted_content = Context(content).extract_to_json()
         self.parse_body()
-        self.persist_impression()
+        self.persist()
+        self.user_id = self.body['user_id']
+        self.limit = self.content['limit']
 
     def parse_body(self):
-        for impr_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
-            self.body[impr_property] = self.extracted_content[Context.MAPPINGS_INV[impr_property]]
+        for rec_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
+            self.body[rec_property] = self.extracted_content[Context.MAPPINGS_INV[rec_property]]
 
+        self.limit = self.body['limit']
         self.add_domain_id()
         self.add_timestamp()
 
@@ -77,29 +75,16 @@ class Impression:
     def add_timestamp(self):
         self.body['timestamp'] = int(self.extracted_content['timestamp'] / 1000)
 
-    def persist_impression(self):
-        self.store_impression_to_es()
-        self.store_user_impression_to_redis()
+    def persist(self):
+        self.store_to_es()
 
-    def store_user_impression_to_redis(self):
-        key = 'user_impressions:' + str(self.body['user_id'])
-        redis.zadd(key, self.body['item_id'], int(time.time()))
-
-    def store_impression_to_es(self):
+    def store_to_es(self):
         res = es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.body)
         if res['created']:
             self.id = res['_id']
 
     @classmethod
-    def user_impressions(cls, user_id):
-        key = 'user_impressions:' + str(user_id)
-        impressions = redis.zrange(key, 0, -1, True, withscores=True)
-        return impressions
-
-    @classmethod
-    def predict_context_cluster(cls, impression):
-        context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
+    def predict_context_cluster(cls, rec_req):
+        context_vec = ContextEncoder.encode_context_to_dense_vec(rec_req.extracted_content)
         cluster = ClusteringModel.predict_cluster(context_vec)
-
         return cluster
-        # ClusteringProducer.clusterize_request(impression.id, context_vec, 'impression')

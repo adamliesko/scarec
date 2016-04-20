@@ -1,13 +1,6 @@
 import os
 import sys
 
-# Path for spark source folder
-os.environ['SPARK_HOME'] = "/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6"
-
-# Append pyspark  to Python Path
-sys.path.append("/Users/Adam/scarec/spark-1.6.1-bin-hadoop2.6/python")
-os.environ["PYSPARK_PYTHON"] = "/Users/Adam/Py3Env/bin/python"
-
 from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.clustering import StreamingKMeans

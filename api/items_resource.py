@@ -1,7 +1,9 @@
 # Let's get this party started
-import falcon
 import json
 import logging
+
+import falcon
+
 from models.item import Item
 
 

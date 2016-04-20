@@ -1,6 +1,8 @@
 import json
-from settings import KmeansSettings
+
 from kafka import SimpleProducer, SimpleClient
+
+from settings import KmeansSettings
 
 
 class ClusteringProducer:
