@@ -3,8 +3,6 @@ from pyspark.mllib.util import MLUtils
 
 
 class RandomForester:
-
-
     sc = SparkContext(appName="RandomForestJob")
 
 

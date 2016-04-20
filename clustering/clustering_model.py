@@ -1,11 +1,10 @@
 import time
-import os
-import sys
 
 from pyspark.mllib.clustering import KMeans, KMeansModel
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_spark_context import sc
 from rediser import redis
+
 
 # sc.addPyFile("/path/to/redis.zip")
 

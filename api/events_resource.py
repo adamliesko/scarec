@@ -1,8 +1,9 @@
 import json
 
-import falcon
 from redis import Redis
 from rq import Queue
+import falcon
+
 
 from models.impression import Impression
 
@@ -16,6 +17,8 @@ class EventsResource:
             raise falcon.HTTPBadRequest('Empty request body',
                                         'A valid JSON document is required.')
         data = json.loads(body.decode('utf-8'))
+        #logger.info('Received new event:' + data)
+
         impression = Impression(data)
         Impression.predict_context_cluster(impression)
         resp.status = falcon.HTTP_200

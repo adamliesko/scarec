@@ -1,6 +1,4 @@
 import json
-import os
-import sys
 
 from clustering.clustering_spark_context import sc
 from pyspark.mllib.util import MLUtils
@@ -15,6 +13,7 @@ SEED = 13
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/contextual.zip")
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/rediser.py")
 sc.addPyFile("/Users/Adam/PycharmProjects/scarec/clustering/clustering_evaluator.py")
+
 
 class ClusteringEvalRunner:
     OUTPUT_RDD_FILE_PATH = "/Users/Adam/PLISTA_DATASET/cross_validation"
@@ -79,7 +78,6 @@ def convert_file_to_dense_contextual_vectors(input=INPUT_PATH, output=OUTPUT_RDD
     # data.persist()
     data.map(lambda line: create_dense_vector(line)).saveAsTextFile(output)
 
-
-#convert_file_to_dense_contextual_vectors()
+# convert_file_to_dense_contextual_vectors()
 
 # ClusteringEvalRunner.run_eval("/Users/Adam/PLISTA_DATASET/eval_rdd_labeled_points", 1, 1)

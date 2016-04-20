@@ -1,19 +1,19 @@
 import logging
-import falcon
 import os
 import sys
 
-sys.path.append(os.environ.get('PYTHONPATH'))
+import falcon
 
 from api.items_resource import ItemsResource
+
+sys.path.append(os.environ.get('PYTHONPATH'))
+
 from api.recommendations_resource import RecommendationsResource
 from api.events_resource import EventsResource
 from api.errors_resource import ErrorsResource
 
-
-
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.FileHandler('scares.log'))
+logger.addHandler(logging.FileHandler('scarec.log'))
 logger.setLevel(logging.INFO)
 
 app = falcon.API()

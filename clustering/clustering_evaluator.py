@@ -1,10 +1,9 @@
 from math import sqrt
-import os
-import sys
 
 from pyspark.mllib.clustering import KMeansModel
 from pyspark.mllib.util import MLUtils
 from clustering.clustering_spark_context import sc
+
 
 # loads model from model_path, evaluates predictions on input_path and stores resulting wssse into redis
 
