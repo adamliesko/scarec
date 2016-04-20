@@ -3,13 +3,24 @@ from rediser import redis
 
 
 class PopularityRecommender:
-    @classmethod
-    def recommend_to_user(cls, user_id, request):
-        pass
+    MAX_ARTICLES_RETRIEVED_FROM_REDIS = 50
+    DEFAULT_POPULARITY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
 
     @classmethod
-    def recommend_to_request(cls, request):
-        pass
+    def current_most_popular_global(cls, time_interval):
+        key = cls.redis_key_for_global(time_interval)
+        return cls.read_popular_articles_from_redis(key)
+
+    @classmethod
+    def current_most_popular_attribute(cls, time_interval, attribute, value):
+        key = cls.redis_key_for_attribute(time_interval, attribute, value)
+        return cls.read_popular_articles_from_redis(key)
+
+    @classmethod
+    def read_popular_articles_from_redis(cls, key):
+        articles_with_scores_ary = redis.zrevrange(key, 0, cls.MAX_ARTICLES_RETRIEVED_FROM_REDIS, withscores=True)
+        articles_with_scores = dict((article, score) for article, score in articles_with_scores_ary)
+        return articles_with_scores
 
     @classmethod
     def most_popular_n(cls, origin_timestamp, count=30):
@@ -91,7 +102,7 @@ class PopularityRecommender:
 
     @classmethod
     def update_popular_articles(cls, origin_timestamp, time_interval,
-                                attributes=['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']):
+                                attributes=DEFAULT_POPULARITY_ATTRIBUTES):
         cls.__update_popular_articles_global(origin_timestamp, time_interval)
         for attr in attributes:
             cls.__update_popular_articles_attribute(attr, origin_timestamp, time_interval)
@@ -100,7 +111,7 @@ class PopularityRecommender:
     def __update_popular_articles_attribute(cls, attribute, origin_timestamp, time_interval):
         attribute_values = cls.most_popular_per_attribute_n(attribute, origin_timestamp)
         for value in attribute_values:
-            key = 'most_popular_articles:' + time_interval + ':' + attribute + ':' + value
+            key = cls.redis_key_for_attribute(time_interval, attribute, value)
             r = redis.pipeline()
             r.delete(key)
             for article in attribute_values[value]:
@@ -109,10 +120,18 @@ class PopularityRecommender:
 
     @classmethod
     def __update_popular_articles_global(cls, origin_timestamp, time_interval):
-        key = 'most_popular_articles:' + time_interval
+        key = cls.redis_key_for_global(time_interval)
         articles = cls.most_popular_n(origin_timestamp)
         r = redis.pipeline()
         r.delete(key)
         for article_key in articles:
             r.zadd(key, article_key, articles[article_key])
         r.execute()
+
+    @staticmethod
+    def redis_key_for_global(time_interval):
+        return 'most_popular_articles:' + time_interval
+
+    @staticmethod
+    def redis_key_for_attribute(time_interval, attribute, value):
+        return 'most_popular_articles:' + time_interval + ':' + attribute + ':' + value

@@ -1,6 +1,6 @@
 from elasticsearcher import es
 from rediser import redis
-from item_enrichers.enricher import Enricher
+#from item_enrichers.enricher import Enricher
 import time
 
 
@@ -38,7 +38,8 @@ class Item:
         self.prepare_for_indexing()
         new_domain = self.store_item_domain_key_pair()
         if new_domain:
-            enriched_content = Enricher.enrich_article(self.content["url"])
+            pass
+            # enriched_content = Enricher.enrich_article(self.content["url"])
             # TODO: add enriched content to the to be indexed item body
         es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.content, id=self.id)
 
