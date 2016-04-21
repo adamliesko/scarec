@@ -16,6 +16,7 @@ TIME_DIFFS = {'1h': 60 * 60,
 def update_popular_articles(time_interval):
     current_timestamp = int(time.time())
     origin_timestamp = current_timestamp - TIME_DIFFS[time_interval]
+
     PopularityRecommender.update_popular_articles(origin_timestamp, time_interval)
 
 
@@ -23,22 +24,22 @@ def update_recent_articles():
     current_timestamp = int(time.time())
     RecencyRecommender.update_recent_articles(current_timestamp)
 
-# schedule.every(1).minute.do(update_popular_articles, '1h')
-# schedule.every(1).minute.do(update_popular_articles, '4h')
-# schedule.every(1).hour.do(update_popular_articles, '24h')
-# schedule.every(1).hour.do(update_popular_articles, '48h')
-# schedule.every(2).hours.do(update_popular_articles, '72h')
-# schedule.every(2).hours.do(update_popular_articles, '168h')
-#
-# schedule.every(10).minutes.do(update_recent_articles)
-#
-# while True:
-#     try:
-#         schedule.run_pending()
-#     except Exception:
-#         pass
-#     finally:
-#         time.sleep(1)
 
-update_popular_articles('1h')
+schedule.every(1).minute.do(update_popular_articles, '1h')
+schedule.every(1).minute.do(update_popular_articles, '4h')
+schedule.every(1).hour.do(update_popular_articles, '24h')
+schedule.every(1).hour.do(update_popular_articles, '48h')
+schedule.every(2).hours.do(update_popular_articles, '72h')
+schedule.every(2).hours.do(update_popular_articles, '168h')
+
+schedule.every(10).minutes.do(update_recent_articles)
+
+while True:
+    try:
+        schedule.run_pending()
+    except Exception:
+        pass
+    finally:
+        time.sleep(1)
+
 # TODO: use background processes, separate class

@@ -20,9 +20,10 @@ class RecommendationsResource:
 
         recommendation_req = Recommendation(data)
         recommendation_req.persist()
-        recommendations = RecommenderFacade.recommend_to_user(recommendation_req, data, algorithm, time_interval)
+        recommendations = RecommenderFacade.recommend_to_user(recommendation_req, algorithm, time_interval)
         response_body = self.build_recommendation_response(recommendations)
-        resp.body(json.dumps(response_body))
+        print(json.dumps(response_body))
+        resp.body = str(json.dumps(response_body))
         resp.status = falcon.HTTP_200
 
     def build_recommendation_response(self, recommendations):

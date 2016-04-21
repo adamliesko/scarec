@@ -4,6 +4,8 @@ from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
 
+import time
+
 
 class Recommendation:
     ES_ITEM_INDEX = 'recommendations'
@@ -63,7 +65,7 @@ class Recommendation:
         for rec_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
             self.body[rec_property] = self.extracted_content[Context.MAPPINGS_INV[rec_property]]
 
-        self.limit = self.body['limit']
+        self.limit = self.content['limit']
         self.add_domain_id()
         self.add_timestamp()
 
@@ -73,7 +75,7 @@ class Recommendation:
             self.body['domain_id'] = domain_id
 
     def add_timestamp(self):
-        self.body['timestamp'] = int(self.extracted_content['timestamp'] / 1000)
+        self.body['timestamp'] = int(time.time() / 1000)
 
     def persist(self):
         self.store_to_es()

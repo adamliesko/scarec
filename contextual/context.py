@@ -56,9 +56,12 @@ class Context:
             idx += 1
         return self.dict_out
 
-    def extract_to_json(self):
-        self.dict_out["recs"] = self.dict_in["recs"]["ints"]["3"]
-        self.dict_out["recs"] = self.dict_in["timestamp"]
+    def extract_to_json(self):  # handling both Impressions and Recommendation Request
+        if self.dict_in.get('recs', False):
+            self.dict_out["recs"] = self.dict_in["recs"]["ints"]["3"]
+        if self.dict_in.get('timestamp', False):
+            self.dict_out['timestamp'] = self.dict_in['timestamp']
+
         if self.dict_in['context']['simple']:
             for key, value in self.dict_in["context"]["simple"].items():
                 self.dict_out[key] = value
@@ -71,5 +74,5 @@ class Context:
                     self.dict_out = self._extract_clustered_content(key, value)
                 elif isinstance(value, list):
                     self.dict_out = self._extract_list_with_seq_keys(key, value)
-            self.dict_out['timestamp'] = self.dict_in['timestamp']
+
         return self.dict_out

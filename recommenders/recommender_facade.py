@@ -6,7 +6,7 @@ class RecommenderFacade:
     @classmethod
     def recommend_to_user(cls, recommendation_rec, algorithm, time_interval):
         user_id = recommendation_rec.user_id
-        data = recommendation_rec.body
+        data = recommendation_rec.content
         limit = recommendation_rec.limit
         if algorithm == 'popular_global':
             recommendations = cls.recommend_popular_global(time_interval)
@@ -22,10 +22,10 @@ class RecommenderFacade:
             final_recommendations = recommendations
 
         if len(final_recommendations) > 0:
-            recommended_articles = final_recommendations[0:limit]
+            recommended_articles = [int(r) for r in final_recommendations.keys()][0:limit]
         else:
             global_most_popular = cls.recommend_popular_global(time_interval)
-            recommended_articles = global_most_popular[0:limit]
+            recommended_articles = [int(r) for r in global_most_popular.keys()][0:limit]
         return recommended_articles
 
     @classmethod
