@@ -61,6 +61,7 @@ class Impression:
         self.extracted_content = Context(content).extract_to_json()
         self.parse_body()
         self.persist()
+        self.cluster_id = None
 
     def parse_body(self):
         for impr_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
@@ -68,6 +69,8 @@ class Impression:
 
         self.add_domain_id()
         self.add_timestamp()
+        self.cluster_id = self.predict_context_cluster(self)
+        self.body['cluster_id'] = self.cluster_id
 
     def add_domain_id(self):
         domain_id = redis.get('item_domain_pairs:' + str(self.body['item_id']))
@@ -90,6 +93,9 @@ class Impression:
         if res['created']:
             self.id = res['_id']
 
+    def update_impression_in_es(self):
+        es.update(index=self.ES_ITEM_INDEX, id=self.id, doc_type=self.ES_ITEM_TYPE, body=self.body)
+
     @classmethod
     def user_impressions(cls, user_id):
         key = 'user_impressions:' + str(user_id)
@@ -100,6 +106,4 @@ class Impression:
     def predict_context_cluster(cls, impression):
         context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
         cluster = ClusteringModel.predict_cluster(context_vec)
-
         return cluster
-        # ClusteringProducer.clusterize_request(impression.id, context_vec, 'impression')

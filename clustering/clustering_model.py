@@ -6,21 +6,13 @@ from clustering.clustering_spark_context import sc
 from rediser import redis
 
 
-# sc.addPyFile("/path/to/redis.zip")
-
-
 class ClusteringModel:
-    def __init__(self, model_path=None):
-        if model_path:
-            self.model = KMeansModel.load(sc, 'modelik')
-        else:
-            self.model = None
+    MODEL = KMeansModel.load(sc, '/Users/Adam/PycharmProjects/scarec/clustering/kmeans_clustering_k_79_iters_2_runs_1_split_4_59')
 
-    def predict_cluster(self, point):
-        if self.model:
-            return self.model.predit(point)
-        else:
-            return None
+    @classmethod
+    def predict_cluster(cls, point):
+        cluster = cls.MODEL.predict(point)
+        return cluster
 
     @classmethod
     def learn_model(cls, model_path, parsed_data, k=10, iterations=10):

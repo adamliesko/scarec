@@ -8,6 +8,7 @@ class RecommenderFacade:
         user_id = recommendation_rec.user_id
         data = recommendation_rec.content
         limit = recommendation_rec.limit
+
         if algorithm == 'popular_global':
             recommendations = cls.recommend_popular_global(time_interval)
         else:
@@ -17,15 +18,17 @@ class RecommenderFacade:
 
         if user_id:
             user_visits = redis.zrange('user_impressions:' + str(user_id), 0, -1)
-            final_recommendations = [rec for rec in recommendations if rec not in set(user_visits)]
+            user_visits = [int(visit) for visit in user_visits]
+            final_recommendations = [int(rec) for rec in recommendations if rec not in set(user_visits)]
         else:
-            final_recommendations = recommendations
+            final_recommendations = [int(rec) for rec in recommendations]
 
         if len(final_recommendations) > 0:
-            recommended_articles = [int(r) for r in final_recommendations.keys()][0:limit]
+            recommended_articles = final_recommendations[0:limit]
         else:
             global_most_popular = cls.recommend_popular_global(time_interval)
             recommended_articles = [int(r) for r in global_most_popular.keys()][0:limit]
+
         return recommended_articles
 
     @classmethod

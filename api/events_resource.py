@@ -20,5 +20,4 @@ class EventsResource:
         #logger.info('Received new event:' + data)
 
         impression = Impression(data)
-        #Impression.predict_context_cluster(impression)
         resp.status = falcon.HTTP_200

@@ -16,7 +16,6 @@ TIME_DIFFS = {'1h': 60 * 60,
 def update_popular_articles(time_interval):
     current_timestamp = int(time.time())
     origin_timestamp = current_timestamp - TIME_DIFFS[time_interval]
-
     PopularityRecommender.update_popular_articles(origin_timestamp, time_interval)
 
 
