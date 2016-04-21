@@ -1,5 +1,5 @@
 import time
-
+import os
 from pyspark.mllib.clustering import KMeans, KMeansModel
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_spark_context import sc
@@ -7,7 +7,7 @@ from rediser import redis
 
 
 class ClusteringModel:
-    MODEL = KMeansModel.load(sc, '/Users/Adam/PycharmProjects/scarec/clustering/kmeans_clustering_k_79_iters_2_runs_1_split_4_59')
+    MODEL = KMeansModel.load(sc, os.environ.get('KMEANS_MODEL_PATH'))
 
     @classmethod
     def predict_cluster(cls, point):
