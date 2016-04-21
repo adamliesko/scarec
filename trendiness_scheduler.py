@@ -23,22 +23,22 @@ def update_recent_articles():
     current_timestamp = int(time.time())
     RecencyRecommender.update_recent_articles(current_timestamp)
 
+# schedule.every(1).minute.do(update_popular_articles, '1h')
+# schedule.every(1).minute.do(update_popular_articles, '4h')
+# schedule.every(1).hour.do(update_popular_articles, '24h')
+# schedule.every(1).hour.do(update_popular_articles, '48h')
+# schedule.every(2).hours.do(update_popular_articles, '72h')
+# schedule.every(2).hours.do(update_popular_articles, '168h')
+#
+# schedule.every(10).minutes.do(update_recent_articles)
+#
+# while True:
+#     try:
+#         schedule.run_pending()
+#     except Exception:
+#         pass
+#     finally:
+#         time.sleep(1)
 
-schedule.every(10).minutes.do(update_popular_articles, '1h')
-schedule.every(10).minutes.do(update_popular_articles, '4h')
-schedule.every(1).hour.do(update_popular_articles, '24h')
-schedule.every(1).hour.do(update_popular_articles, '48h')
-schedule.every(2).hours.do(update_popular_articles, '72h')
-schedule.every(2).hours.do(update_popular_articles, '168h')
-
-schedule.every(10).minutes.do(update_recent_articles)
-
-while True:
-    try:
-        schedule.run_pending()
-    except Exception:
-        pass
-    finally:
-        time.sleep(1)
-
+update_popular_articles('1h')
 # TODO: use background processes, separate class

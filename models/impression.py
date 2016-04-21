@@ -60,7 +60,7 @@ class Impression:
         self.content = content
         self.extracted_content = Context(content).extract_to_json()
         self.parse_body()
-        self.persist_impression()
+        self.persist()
 
     def parse_body(self):
         for impr_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
@@ -77,7 +77,7 @@ class Impression:
     def add_timestamp(self):
         self.body['timestamp'] = int(self.extracted_content['timestamp'] / 1000)
 
-    def persist_impression(self):
+    def persist(self):
         self.store_impression_to_es()
         self.store_user_impression_to_redis()
 

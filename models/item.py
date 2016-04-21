@@ -3,6 +3,8 @@ from rediser import redis
 # from item_enrichers.enricher import Enricher
 import time
 
+# FIRST_TIME_SETUP: es.indices.create(index=Item.ES_ITEM_INDEX, body=Item.index_properties())
+
 
 class Item:
     ES_ITEM_INDEX = 'items'

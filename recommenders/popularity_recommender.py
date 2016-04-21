@@ -23,7 +23,7 @@ class PopularityRecommender:
         return articles_with_scores
 
     @classmethod
-    def most_popular_n(cls, origin_timestamp, count=30):
+    def most_popular_n(cls, origin_timestamp, count=50):
         body = {
             "size": 0,
             "query": {
@@ -48,7 +48,7 @@ class PopularityRecommender:
         return cls.build_aggs_dict_global(res)
 
     @classmethod
-    def most_popular_per_attribute_n(cls, attribute, origin_timestamp, count=30):
+    def most_popular_per_attribute_n(cls, attribute, origin_timestamp, count=50):
         body = {
             "size": 0,
             "query": {
@@ -134,4 +134,4 @@ class PopularityRecommender:
 
     @staticmethod
     def redis_key_for_attribute(time_interval, attribute, value):
-        return 'most_popular_articles:' + time_interval + ':' + attribute + ':' + value
+        return 'most_popular_articles:' + str(time_interval) + ':' + str(attribute) + ':' + str(value)
