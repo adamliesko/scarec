@@ -24,8 +24,8 @@ def update_recent_articles():
     RecencyRecommender.update_recent_articles(current_timestamp)
 
 
-schedule.every(1).minute.do(update_popular_articles, '1h')
-schedule.every(1).minute.do(update_popular_articles, '4h')
+schedule.every(10).minutes.do(update_popular_articles, '1h')
+schedule.every(10).minutes.do(update_popular_articles, '4h')
 schedule.every(1).hour.do(update_popular_articles, '24h')
 schedule.every(1).hour.do(update_popular_articles, '48h')
 schedule.every(2).hours.do(update_popular_articles, '72h')
