@@ -8,7 +8,7 @@ from models.impression import Impression
 
 
 class EventsResource:
-    queue_impression_clustering = Queue('impression_processing', connection=Redis())
+  #  queue_impression_clustering = Queue('impression_processing', connection=Redis(db=13))
 
     def on_post(self, req, resp):
         body = req.stream.read()
