@@ -4,13 +4,14 @@ from pyspark.mllib.clustering import KMeans, KMeansModel
 from contextual.context_encoder import ContextEncoder
 from rediser import redis
 from spark_context import sc
-MODEL = KMeansModel.load(sc, os.environ.get('KMEANS_MODEL_PATH'))
+
 
 class ClusteringModel:
+    MODEL = KMeansModel.load(sc, os.environ.get('KMEANS_MODEL_PATH'))
 
     @classmethod
     def predict_cluster(cls, point):
-        cluster = MODEL.predict(point)
+        cluster = cls.MODEL.predict(point)
         return cluster
 
     @classmethod
