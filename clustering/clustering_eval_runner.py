@@ -1,6 +1,6 @@
 import json
 
-from clustering.clustering_spark_context import sc
+from spark_context import sc
 from pyspark.mllib.util import MLUtils
 from clustering.clustering_evaluator import ClusteringEvaluator
 from clustering.clustering_model import ClusteringModel

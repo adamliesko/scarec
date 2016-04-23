@@ -50,8 +50,6 @@ class CollaborativeRecommenderEngine:
         return predictions
 
     def get_top_recommendations(self, user_id, articles_count):
-        """ Recommends up to articles count top unseen articles to user_id. Recency comes into play - picking up only N most recent fresh articles.
-        """
 
         # load all articles from redis
         # filter out those not in seen in 1 req
@@ -69,15 +67,16 @@ class CollaborativeRecommenderEngine:
         return recommendations
 
     def __init__(self, sc, dataset_path):
-        logger.info("Starting up CollaborativeFiltering Spark Module ")
         self.rank = 8
         self.seed = 42
         self.iterations = 10
         self.regularization_parameter = 0.1
 
+        logger.info("Starting up CollaborativeFiltering SPARK")
+
         self.sc = sc
 
-        model_path = 'als_model'.join([str(self.rank), str(self.iterations), str(self.regularization_parameter)])
+        model_path = 'als_model' + '_'.join([str(self.rank), str(self.iterations), str(self.regularization_parameter)])
 
         if os.path.exists(model_path):
             self.model = ALS.load

@@ -27,7 +27,7 @@ class RecommenderFacade:
             recommended_articles = final_recommendations[0:limit]
         else:
             global_most_popular = cls.recommend_popular_global(time_interval)
-            recommended_articles = [int(r) for r in global_most_popular.keys()][0:limit]
+            recommended_articles = [int(r) for r in global_most_popular.keys()[0:limit]]
 
         return recommended_articles
 

@@ -6,12 +6,7 @@ from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
 
-
 # FIRST_TIME_SETUP: es.indices.create(index=Impression.ES_ITEM_INDEX, body=Impression.index_properties())
-# print(es.index(index=Impression.ES_ITEM_INDEX, doc_type=Impression.ES_ITEM_TYPE,
-#               body={'item_id': 1283210663, 'channel_id': [6, 13], 'timestamp': 1370296799, 'category_id': [1201425],
-#                     'publisher_id': 59436, 'user_id': 18741214652}))
-
 
 class Impression:
     ES_ITEM_INDEX = 'impressions'
@@ -48,12 +43,19 @@ class Impression:
                         },
                         "timestamp": {
                             "type": "date", "store": "true", "format": "epoch_second||dateOptionalTime"
+                        },
+                        "encoded_context": {
+                            "type": "integer", "store": 'true', "index": "not_analyzed"
                         }
                     }
                 }
             }
         }
         return index
+
+    @classmethod
+    def process_new(cls, content):
+        Impression(content)
 
     def __init__(self, content):
         self.body = {}
@@ -89,6 +91,7 @@ class Impression:
         redis.zadd(key, self.body['item_id'], int(time.time()))
 
     def store_impression_to_es(self):
+        print(self.body)
         res = es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.body)
         if res['created']:
             self.id = res['_id']
