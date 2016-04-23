@@ -89,15 +89,22 @@ class Impression:
         self.store_user_impression_to_redis()
 
     def store_user_impression_to_redis(self):
-        item_id = str(self.body['item_id'])
-        user_id = str(self.body['user_id'])
+        if str(self.body['user_id']) != '0':  # dont store unknown user visits
+            item_id = str(self.body['item_id'])
+            user_id = str(self.body['user_id'])
 
-        key_user_visits = 'user_impressions:' + user_id
-        # user_id:item_id pair, last hour
-        key_visits_in_last_hour = 'visits:' + str(
+            key_user_visits = 'user_impressions:' + user_id
+            redis.zadd(key_user_visits, item_id, int(time.time()))
+            # user_id:item_id pair, last hour
+            self.store_windowed_visit_to_redis(user_id, item_id)
+
+    @staticmethod
+    def store_windowed_visit_to_redis(user_id, item_id):
+        key_visits_in_last_hour = 'windowed_visits:' + str(
             Utils.round_time_to_last_hour_as_epoch())
-        redis.zadd(key_user_visits, item_id, int(time.time()))
-        redis.sadd(key_visits_in_last_hour, ':'.join[user_id, item_id])
+        enc_user_id = Utils.encode_attribute('user_id', user_id)
+        enc_item_id = Utils.encode_attribute('item_id', item_id)
+        redis.sadd(key_visits_in_last_hour, ':'.join([str(enc_user_id), str(enc_item_id)]))
 
     def store_impression_to_es(self):
         print(self.body)
