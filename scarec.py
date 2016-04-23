@@ -11,8 +11,6 @@ sys.path.append(os.environ.get('PYTHONPATH'))
 from api.recommendations_resource import RecommendationsResource
 from api.events_resource import EventsResource
 from api.errors_resource import ErrorsResource
-from pyspark import SparkContext
-
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.FileHandler('scarec.log'))

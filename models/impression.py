@@ -5,6 +5,8 @@ from rediser import redis
 from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
+from utils import Utils
+
 
 # FIRST_TIME_SETUP: es.indices.create(index=Impression.ES_ITEM_INDEX, body=Impression.index_properties())
 
@@ -87,8 +89,15 @@ class Impression:
         self.store_user_impression_to_redis()
 
     def store_user_impression_to_redis(self):
-        key = 'user_impressions:' + str(self.body['user_id'])
-        redis.zadd(key, self.body['item_id'], int(time.time()))
+        item_id = str(self.body['item_id'])
+        user_id = str(self.body['user_id'])
+
+        key_user_visits = 'user_impressions:' + user_id
+        # user_id:item_id pair, last hour
+        key_visits_in_last_hour = 'visits:' + str(
+            Utils.round_time_to_last_hour_as_epoch())
+        redis.zadd(key_user_visits, item_id, int(time.time()))
+        redis.sadd(key_visits_in_last_hour, ':'.join[user_id, item_id])
 
     def store_impression_to_es(self):
         print(self.body)

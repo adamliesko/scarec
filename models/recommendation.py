@@ -1,10 +1,10 @@
+import time
+
 from elasticsearcher import es
 from rediser import redis
 from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
-
-import time
 
 
 class Recommendation:

@@ -1,8 +1,7 @@
-import time
 import os
+
 from pyspark.mllib.clustering import KMeans, KMeansModel
 from contextual.context_encoder import ContextEncoder
-from rediser import redis
 from spark_context import sc
 
 
@@ -16,15 +15,15 @@ class ClusteringModel:
 
     @classmethod
     def learn_model(cls, model_path, parsed_data, k=10, iterations=10):
-        #start_time = round(time.time())  # TODO: refactor it out to SW_PATTERN:DECORATOR
+        # start_time = round(time.time())  # TODO: refactor it out to SW_PATTERN:DECORATOR
 
         model = KMeans.train(parsed_data, k, maxIterations=iterations, runs=1,
                              initializationMode="random")
 
-        #time_taken = round(time.time()) - start_time
-        #redis.set('time_taken:' + model_path, time_taken)
+        # time_taken = round(time.time()) - start_time
+        # redis.set('time_taken:' + model_path, time_taken)
 
-        #model.save(sc, 'modelik')
+        # model.save(sc, 'modelik')
         return model
 
     @classmethod

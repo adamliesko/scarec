@@ -17,7 +17,7 @@ class ItemsResource:
             raise falcon.HTTPBadRequest('Empty request body',
                                         'A valid JSON document is required.')
         data = json.loads(body.decode('utf-8'))
-        #logger.info('Received new item update/change:' + data)
+        # logger.info('Received new item update/change:' + data)
         article = Item(data)
         article.process_item_change_event()
         resp.status = falcon.HTTP_200  # This is the default status

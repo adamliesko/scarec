@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 class CollaborativeRecommenderEngine:
     def __train_model(self):
-        """Train the ALS model with the current dataset
-        """
         logger.info("Running __train_model")
         start = time.time()
         self.model = ALS.trainImplicit(self.ratings_RDD, self.rank, seed=self.seed,
@@ -66,7 +64,7 @@ class CollaborativeRecommenderEngine:
 
         return recommendations
 
-    def __init__(self, sc, dataset_path):
+    def __init__(self, sc):
         self.rank = 8
         self.seed = 42
         self.iterations = 10
