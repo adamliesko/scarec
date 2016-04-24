@@ -3,6 +3,7 @@ import os
 import time
 sys.path.append(os.environ.get('PYTHONPATH'))
 from pyspark.mllib.recommendation import ALS
+from spark_context import sc
 
 from rediser import redis
 from utils import Utils
@@ -73,10 +74,11 @@ import json
 users_ids_to_evaluate = redis.sinter(train_users_key, test_users_key)
 
 # LOAD_DATA_INTO_THE_SPARK_RDD
-
-train_RDD = []
+train_user_items_pre_rdd= redis.smembers(train_users_items_key)
+train_user_items_rdd = sc.parallelize(train_user_items_pre_rdd)
+train_user_items_rdd_split = train_user_items_rdd.map(lambda pair_string: pair_string.decode('utf-8').split(':'))
+train_RDD = train_user_items_rdd_split.map(lambda user, item: (user, item))
 train_RDD.cache()
-
 
 # PREPARE_PARAMETERS_TO_TEST_OUT
 SEED = 42
