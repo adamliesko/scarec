@@ -77,9 +77,10 @@ class Impression:
         self.body['cluster_id'] = self.cluster_id
 
     def add_domain_id(self):
-        domain_id = redis.get('item_domain_pairs:' + str(self.body['item_id']))
-        if domain_id:
-            self.body['domain_id'] = domain_id
+        if self.body.get('item_id', None) is not None:
+            domain_id = redis.get('item_domain_pairs:' + str(self.body['item_id']))
+            if domain_id:
+                self.body['domain_id'] = domain_id
 
     def add_timestamp(self):
         self.body['timestamp'] = int(self.extracted_content['timestamp'] / 1000)
@@ -89,7 +90,8 @@ class Impression:
         self.store_user_impression_to_redis()
 
     def store_user_impression_to_redis(self):
-        if str(self.body['user_id']) != '0':  # dont store unknown user visits
+        if self.body.get('item_id', None) is not None and self.body.get('user_id', None) is not None and str(
+                self.body['user_id']) != '0':  # dont store unknown user visits
             item_id = str(self.body['item_id'])
             user_id = str(self.body['user_id'])
 

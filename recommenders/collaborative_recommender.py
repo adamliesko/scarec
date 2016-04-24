@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class CollaborativeRecommenderEngine:
+class CollaborativeRecommender:
     def __train_model(self):
         logger.info("Running __train_model")
         start = time.time()
@@ -122,4 +122,4 @@ class CollaborativeRecommenderEngine:
             self.model.save(self.sc, model_path)
 
 
-CollaborativeRecommenderEngine(sc)
+CollaborativeRecommender(sc)
