@@ -16,65 +16,65 @@ test_users_items_key = 'eval:als:test_user_items'
 
 import json
 
+
+#LOAD_TRAIN
+
+
+files = ['/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-01.log',
+        '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-02.log',
+         '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-03.log',
+         '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-04.log',
+         '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-05.log']
+for file in files:
+    with open(file) as f:
+        print(file)
+        x = 0
+        for line in f:
+            x += 1
+            print(file + ':' + str(x))
+            jsond = json.loads(line)
+
+            user_id_long = jsond['context']['simple'].get('57', None)
+            item_id_long = jsond['context']['simple'].get('25', None)
+            if user_id_long is None or str(user_id_long) == '0' or item_id_long is None:
+                continue
+            user_id = Utils.encode_attribute('user_id', user_id_long)
+            item_id = Utils.encode_attribute('item_id', item_id_long)
+            redis.sadd(train_users_key, user_id)
+            redis.sadd(train_users_items_key, ':'.join([str(user_id), str(item_id)]))
+
 #
-# LOAD_TRAIN
+# LOAD_TEST
 #
-#
-# files = ['/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-01.log',
-#         '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-02.log',
-#          '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-03.log',
-#          '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-04.log',
-#          '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-05.log']
-# for file in files:
-#     with open(file) as f:
-#         print(file)
-#         x = 0
-#         for line in f:
-#             x += 1
-#             print(file + ':' + str(x))
-#             jsond = json.loads(line)
-#
-#             user_id_long = jsond['context']['simple'].get('57', None)
-#             item_id_long = jsond['context']['simple'].get('25', None)
-#             if user_id_long is None or str(user_id_long) == '0' or item_id_long is None:
-#                 continue
-#             user_id = Utils.encode_attribute('user_id', user_id_long)
-#             item_id = Utils.encode_attribute('item_id', item_id_long)
-#             redis.sadd(train_users_key, user_id)
-#             redis.sadd(train_users_items_key, ':'.join([str(user_id), str(item_id)]))
-#
-# #
-# # LOAD_TEST
-# #
-#
-# files = ['/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-06.log',
-#          '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-07.log']
-# for file in files:
-#     with open(file) as f:
-#         print(file)
-#         x = 0
-#         for line in f:
-#             x += 1
-#             print(x)
-#             json = json.loads(line)
-#             user_id_long = jsond['context']['simple'].get('57', None)
-#             item_id_long = jsond['context']['simple'].get('25', None)
-#             if user_id_long is None or str(user_id_long) == '0' or item_id_long is None:
-#                 continue
-#             user_id = Utils.encode_attribute('user_id', user_id_long)
-#             item_id = Utils.encode_attribute('item_id', item_id_long)
-#             redis.sadd(test_users_key, user_id)
-#             redis.sadd(test_users_items_key, ':'.join([str(user_id), str(item_id)]))
-#             redis.sadd('als:eval:test:user_items:' + str(user_id), item_id)
-#
-#
+
+files = ['/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-06.log',
+         '/Users/Adam/PLISTA_DATASET/als_eval/impression_2013-06-07.log']
+for file in files:
+    with open(file) as f:
+        print(file)
+        x = 0
+        for line in f:
+            x += 1
+            print(x)
+            json = json.loads(line)
+            user_id_long = jsond['context']['simple'].get('57', None)
+            item_id_long = jsond['context']['simple'].get('25', None)
+            if user_id_long is None or str(user_id_long) == '0' or item_id_long is None:
+                continue
+            user_id = Utils.encode_attribute('user_id', user_id_long)
+            item_id = Utils.encode_attribute('item_id', item_id_long)
+            redis.sadd(test_users_key, user_id)
+            redis.sadd(test_users_items_key, ':'.join([str(user_id), str(item_id)]))
+            redis.sadd('als:eval:test:user_items:' + str(user_id), item_id)
+
+
 
 # FIGURE_OUT_USERS_TO_EVALUATE
 
 users_ids_to_evaluate = redis.sinter(train_users_key, test_users_key)
 
 # LOAD_DATA_INTO_THE_SPARK_RDD
-train_user_items_pre_rdd= redis.smembers(train_users_items_key)
+train_user_items_pre_rdd = redis.smembers(train_users_items_key)
 train_user_items_rdd = sc.parallelize(train_user_items_pre_rdd)
 train_user_items_rdd_split = train_user_items_rdd.map(lambda pair_string: pair_string.decode('utf-8').split(':'))
 train_RDD = train_user_items_rdd_split.map(lambda user, item: (user, item))
