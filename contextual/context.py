@@ -39,17 +39,17 @@ class Context:
         self.dict_in = dict_in
         self.dict_out = {}
 
-    def _extract_clustered_content(self, parent_key, dict_in):
+    def __extract_clustered_content(self, parent_key, dict_in):
         for key, value in dict_in.items():
             new_key = parent_key + ':' + key
             if isinstance(value, int):
                 self.dict_out[new_key] = value
             elif isinstance(value, list):
-                self.dict_out = self._extract_list_with_seq_keys(new_key, value)
+                self.dict_out = self.__extract_list_with_seq_keys(new_key, value)
                 pass
         return self.dict_out
 
-    def _extract_list_with_seq_keys(self, key, list_in):
+    def __extract_list_with_seq_keys(self, key, list_in):
         idx = 0
         for value in list_in:
             self.dict_out[key + ':' + str(idx)] = value
@@ -71,8 +71,8 @@ class Context:
         if self.dict_in['context']['clusters']:
             for key, value in self.dict_in['context']['clusters'].items():
                 if isinstance(value, dict):
-                    self.dict_out = self._extract_clustered_content(key, value)
+                    self.dict_out = self.__extract_clustered_content(key, value)
                 elif isinstance(value, list):
-                    self.dict_out = self._extract_list_with_seq_keys(key, value)
+                    self.dict_out = self.__extract_list_with_seq_keys(key, value)
 
         return self.dict_out

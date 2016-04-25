@@ -22,10 +22,10 @@ class Utils:
 
     @staticmethod  # visit, user for collaborative filtering long to int conversion
     def encode_attribute(attr, val):
-        key = 'encoded:' + str(attr) + ':' + str(val) + ':'
-        existing_attr_id = redis.get(key + str(val))
+        key = 'encoded:' + str(attr) + ':' + str(val) + ''
+        existing_attr_id = redis.get(key)
         if existing_attr_id:
-            return existing_attr_id
+            return existing_attr_id.decode('utf-8')
         else:
             new_val = redis.incr('encoded_attr_id_idx:' + str(attr))
             redis.set(key, new_val)

@@ -60,12 +60,14 @@ class Impression:
         Impression(content)
 
     def __init__(self, content):
+        self.cluster_id = None
+        self.context_vec = None
+        self.id = None
         self.body = {}
         self.content = content
         self.extracted_content = Context(content).extract_to_json()
         self.parse_body()
         self.persist()
-        self.cluster_id = None
 
     def parse_body(self):
         for impr_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
@@ -73,7 +75,7 @@ class Impression:
 
         self.add_domain_id()
         self.add_timestamp()
-        self.cluster_id = self.predict_context_cluster(self)
+        self.predict_context_cluster(self)
         self.body['cluster_id'] = self.cluster_id
 
     def add_domain_id(self):
@@ -100,16 +102,7 @@ class Impression:
             # user_id:item_id pair, last hour
             self.store_windowed_visit_to_redis(user_id, item_id)
 
-    @staticmethod
-    def store_windowed_visit_to_redis(user_id, item_id):
-        key_visits_in_last_hour = 'windowed_visits:' + str(
-            Utils.round_time_to_last_hour_as_epoch())
-        enc_user_id = Utils.encode_attribute('user_id', user_id)
-        enc_item_id = Utils.encode_attribute('item_id', item_id)
-        redis.sadd(key_visits_in_last_hour, ':'.join([str(enc_user_id), str(enc_item_id)]))
-
     def store_impression_to_es(self):
-        print(self.body)
         res = es.index(index=self.ES_ITEM_INDEX, doc_type=self.ES_ITEM_TYPE, body=self.body)
         if res['created']:
             self.id = res['_id']
@@ -117,14 +110,21 @@ class Impression:
     def update_impression_in_es(self):
         es.update(index=self.ES_ITEM_INDEX, id=self.id, doc_type=self.ES_ITEM_TYPE, body=self.body)
 
+    def predict_context_cluster(self, impression):
+        self.context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
+        self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
+        self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
+
     @classmethod
     def user_impressions(cls, user_id):
         key = 'user_impressions:' + str(user_id)
         impressions = redis.zrange(key, 0, -1, True, withscores=True)
         return impressions
 
-    @classmethod
-    def predict_context_cluster(cls, impression):
-        context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
-        cluster = ClusteringModel.predict_cluster(context_vec)
-        return cluster
+    @staticmethod
+    def store_windowed_visit_to_redis(user_id, item_id):
+        key_visits_in_last_hour = 'windowed_visits:' + str(
+            Utils.round_time_to_last_hour_as_epoch())
+        enc_user_id = Utils.encode_attribute('user_id', user_id)
+        enc_item_id = Utils.encode_attribute('item_id', item_id)
+        redis.sadd(key_visits_in_last_hour, ':'.join([str(enc_user_id), str(enc_item_id)]))

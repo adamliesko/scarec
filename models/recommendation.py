@@ -53,6 +53,7 @@ class Recommendation:
         return index
 
     def __init__(self, content):
+        self.id  = None
         self.body = {}
         self.content = content
         self.extracted_content = Context(content).extract_to_json()
