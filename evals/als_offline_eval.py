@@ -81,14 +81,13 @@ train_RDD.cache()
 print('finish data loading')
 # PREPARE_PARAMETERS_TO_TEST_OUT
 SEED = 42
-RANKS = [50] #[3, 5, 8, 10, 15, 20, 30, 40, 50]  # number of hidden latent factors
-ITERATIONS = [30] #[1, 5, 8, 10, 15, 20, 30]  # lambda is automatically scaled
+RANKS = [3, 5, 6, 7 8, 10, 15, 20, 30, 40, 50]  # number of hidden latent factors
+ITERATIONS =  [1, 5, 8, 10, 15, 20, 30]  # lambda is automatically scaled
 user_id_counts = len(users_ids_to_evaluate)
 
 # ITERATE OVER OPTIONS, BUILD MODEL ON TRAIN DATA, EVAL on TEST_DATA, STORE RESULTS
 for ranks in RANKS:
     for iters in ITERATIONS:
-
         print(iters)
         start = time.time()
         skips = 0
@@ -125,7 +124,6 @@ for ranks in RANKS:
 
             map_10 += matched_10_size / 10.0
             map_20 += matched_20_size / 20.0
-            print(map_20)
 
         map_10_final = map_10 / float(user_id_counts - skips)
         map_20_final = map_20 / float(user_id_counts - skips)

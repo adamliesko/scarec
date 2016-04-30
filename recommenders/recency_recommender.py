@@ -4,8 +4,10 @@ from models.item import Item
 
 
 class RecencyRecommender:
+    DEFAULT_RECENCY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
+
     @classmethod
-    def most_recent_n(cls, origin_timestamp, count=30, scale="24h", offset="2h", decay=0.5):
+    def most_recent_n(cls, origin_timestamp, count=200, scale="24h", offset="2h", decay=0.5):
         body = {
             "query": {
                 "function_score": {
@@ -43,7 +45,7 @@ class RecencyRecommender:
         return res['hits']['hits']
 
     @classmethod
-    def most_recent_per_attribute_n(cls, origin_timestamp, attribute, attribute_value, count=30, scale="24h",
+    def most_recent_per_attribute_n(cls, origin_timestamp, attribute, attribute_value, count=100, scale="24h",
                                     offset="2h", decay=0.5):
         body = {
             "query": {
@@ -86,14 +88,14 @@ class RecencyRecommender:
         return res['hits']['hits']
 
     @classmethod
-    def update_recent_articles(cls, origin_timestamp):
+    def update_recent_articles(cls, origin_timestamp, attributes=DEFAULT_RECENCY_ATTRIBUTES):
         cls.__update_recent_articles_global(origin_timestamp)
-        cls.__update_recent_articles_domains(origin_timestamp)
-        cls.__update_recent_articles_publishers(origin_timestamp)
+        # for attribute in attributes:
+        # cls.__update_recent_articles_attribute(attribute, origin_timestamp)
 
     @classmethod
     def __update_recent_articles_global(cls, origin_timestamp):
-        key = 'most_recent_articles'
+        key = cls.redis_key_for_global()
         articles = cls.most_recent_n(origin_timestamp)
         r = redis.pipeline()
         r.delete(key)
@@ -102,25 +104,31 @@ class RecencyRecommender:
         r.execute()
 
     @classmethod
-    def __update_recent_articles_domains(cls, origin_timestamp):
-        domains = redis.hgetall('domains')
-        for domain in domains:
-            key = 'most_recent_articles:domain:' + domain
-            articles = cls.most_recent_per_attribute_n(origin_timestamp, 'domain', domain)
+    def __update_recent_articles_attribute(cls, attribute, origin_timestamp):
+        # TODO get actual values for attributes and compute it per attribute:attribute_value key set
+        attribute_values = cls.most_recent_per_attribute_n(attribute, origin_timestamp)
+        for value in attribute_values:
+            key = cls.redis_key_for_attribute(attribute, value)
             r = redis.pipeline()
             r.delete(key)
-            for article in articles:
-                r.zadd(key, str(article['_id']), article['_score'])
+            for article in attribute_values[value]:
+                r.zadd(key, article, attribute_values[value][article])
             r.execute()
 
     @classmethod
-    def __update_recent_articles_publishers(cls, origin_timestamp):
-        publishers = redis.hgetall('publishers')
-        for publisher in publishers:
-            key = 'most_recent_articles:publisher:' + publisher
-            articles = cls.most_recent_per_attribute_n(origin_timestamp, 'publisher', publisher)
-            r = redis.pipeline()
-            r.delete(key)
-            for article in articles:
-                r.zadd(key, str(article['_id']), article['_score'])
-            r.execute()
+    def __update_popular_articles_global(cls, origin_timestamp):
+        key = cls.redis_key_for_global()
+        articles = cls.most_recent_n(origin_timestamp)
+        r = redis.pipeline()
+        r.delete(key)
+        for article_key in articles:
+            r.zadd(key, article_key, articles[article_key])
+        r.execute()
+
+    @staticmethod
+    def redis_key_for_global():
+        return 'most_recent_articles:'
+
+    @staticmethod
+    def redis_key_for_attribute(attribute, value):
+        return 'most_recent_articles:' + str(attribute) + ':' + str(value)
