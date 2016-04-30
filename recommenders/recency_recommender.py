@@ -7,7 +7,7 @@ class RecencyRecommender:
     DEFAULT_RECENCY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
 
     @classmethod
-    def most_recent_n(cls, origin_timestamp, count=200, scale="24h", offset="2h", decay=0.5):
+    def most_recent_n(cls, origin_timestamp, count=500, scale="24h", offset="2h", decay=0.5):
         body = {
             "query": {
                 "function_score": {
@@ -45,7 +45,7 @@ class RecencyRecommender:
         return res['hits']['hits']
 
     @classmethod
-    def most_recent_per_attribute_n(cls, origin_timestamp, attribute, attribute_value, count=100, scale="24h",
+    def most_recent_per_attribute_n(cls, origin_timestamp, attribute, attribute_value, count=500, scale="24h",
                                     offset="2h", decay=0.5):
         body = {
             "query": {
@@ -124,6 +124,10 @@ class RecencyRecommender:
         for article_key in articles:
             r.zadd(key, article_key, articles[article_key])
         r.execute()
+
+    @classmethod
+    def get_most_recent_articles_global(cls, count=500):
+        redis.zrange(cls.redis_key_for_global(), 0, count, withscores=True, desc=True)
 
     @staticmethod
     def redis_key_for_global():

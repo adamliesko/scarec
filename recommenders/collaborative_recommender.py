@@ -15,7 +15,6 @@ class CollaborativeRecommender:
     def __train_model(self):
         logger.info("Running __train_model")
         start = time.time()
-        print(start)
         self.model = ALS.trainImplicit(self.visits_RDD, self.rank, seed=self.seed,
                                        iterations=self.iterations, lambda_=self.regularization_parameter)
         logger.info("Run of __train_model finished, took: ", str(time.time() - start))
@@ -58,6 +57,31 @@ class CollaborativeRecommender:
 
         return predictions_conf_rdd
 
+    # DEPRECATED: use recommend_to_user
+    # def get_prediction_for_article_ids(self, user_id, article_ids):
+    #     """Given a user_id and a list of article_ids, predict ratings for them
+    #     """
+    #     requested_articles_rdd = self.sc.parallelize(article_ids).map(lambda x: (user_id, x))
+    #     # Get predicted confidences (implicit feedback only)
+    #
+    #     predictions = self.__predict_visits(requested_articles_rdd).collect()
+    #
+    #     return predictions
+    #
+    # def get_top_recommendations(self, user_id, articles_count):
+    #     user_seen = redis.get('user_visits:' + user_id)
+    #     articles_recent = redis.zrange('articles', 0, 1000)
+    #
+    #     user_unseen_articles_ids = articles_recent - user_seen
+    #     user_unseen_articles = [(user_id, article_id) for article_id in user_unseen_articles_ids]
+    #     user_unseen_articles_rdd = self.sc.paralelize(user_unseen_articles)
+    #
+    #     # Get predicted confidence
+    #     recommendations = self.__predict_visits(user_unseen_articles_rdd).takeOrdered(articles_count,
+    #                                                                                   key=lambda x: -x[1])
+    #
+    #     return recommendations
+
     def add_new_visits(self):
         """Add additional visits in the format (user_id, article_id)
         """
@@ -74,28 +98,10 @@ class CollaborativeRecommender:
         new_visits_rdd = self.sc.parallelize(visits)
         self.visits_RDD = self.visits_RDD.union(new_visits_rdd)
 
-    def get_prediction_for_article_ids(self, user_id, article_ids):
-        """Given a user_id and a list of article_ids, predict ratings for them
-        """
-        requested_articles_rdd = self.sc.parallelize(article_ids).map(lambda x: (user_id, x))
-        # Get predicted confidences (implicit feedback only)
-
-        predictions = self.__predict_visits(requested_articles_rdd).collect()
-
-        return predictions
-
-    def get_top_recommendations(self, user_id, articles_count):
-        user_seen = redis.get('user_visits:' + user_id)
-        articles_recent = redis.zrange('articles', 0, 1000)
-
-        user_unseen_articles_ids = articles_recent - user_seen
-        user_unseen_articles = [(user_id, article_id) for article_id in user_unseen_articles_ids]
-        user_unseen_articles_rdd = self.sc.paralelize(user_unseen_articles)
-
-        # Get predicted confidence
-        recommendations = self.__predict_visits(user_unseen_articles_rdd).takeOrdered(articles_count,
-                                                                                      key=lambda x: -x[1])
-
+    def recommend_to_user(self, user_id, articles_count=10):
+        translated_user_id = Utils.encode_attribute('user_id', user_id)
+        recommendations = self.model.recommendProducts(int(translated_user_id), articles_count)
+        recommendations = [Utils.decode_attribute('item_id', r.product) for r in recommendations]
         return recommendations
 
     def __init__(self, sc):
@@ -120,6 +126,3 @@ class CollaborativeRecommender:
             # Train the model
             self.__train_model()
             self.model.save(self.sc, model_path)
-
-
-CollaborativeRecommender(sc)

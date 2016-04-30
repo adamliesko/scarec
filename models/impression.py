@@ -118,7 +118,7 @@ class Impression:
     @classmethod
     def user_impressions(cls, user_id):
         key = 'user_impressions:' + str(user_id)
-        impressions = redis.zrange(key, 0, -1, True, withscores=True)
+        impressions = redis.zrange(key, 0, -1, True)
         return impressions
 
     @staticmethod
