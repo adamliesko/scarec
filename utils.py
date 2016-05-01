@@ -4,11 +4,10 @@ from rediser import redis
 
 
 class Utils:
-
     @staticmethod
     def init_key_indices():
         user_id_idx_key = 'encoded_attr_id_idx:user_id'
-        user_idx = redis.get(user_id_idx_key )
+        user_idx = redis.get(user_id_idx_key)
         if user_idx is None:
             redis.set(user_id_idx_key, 1)
 
@@ -40,4 +39,5 @@ class Utils:
         decoded_val = redis.get(key)
         return decoded_val.decode('utf-8')
 
-Utils.init_key_indices() # run only once
+
+Utils.init_key_indices()  # run only once

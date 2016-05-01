@@ -36,4 +36,4 @@ class ClusteringModel:
 
     @classmethod
     def update_model(cls):
-        pass #TODO: load new items from es, do temp model load, switch MODEL to the new one
+        pass  # TODO: load new items from es, do temp model load, switch MODEL to the new one

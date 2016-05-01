@@ -29,5 +29,3 @@ class RecommendationsResource:
         resp["recs"]["ints"] = {self.RECS_KEY: recommendations}
         resp["recs"]["floats"] = {self.WEIGHTS_KEY: [0.5] * len(recommendations)}
         return resp
-
-        # TODO: identifikuj cluster

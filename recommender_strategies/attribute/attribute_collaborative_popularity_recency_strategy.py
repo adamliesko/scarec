@@ -10,7 +10,8 @@ class AttributeCollaborativePopularityRecencyStrategy(RecommenderStrategy):
     @staticmethod
     def recommend_to_user(user_id, attribute, attribute_value, time_interval):
         user_visits = RecommenderStrategy.user_impressions(user_id)
-        pop_recommendations = PopularityRecommender.get_most_popular_articles_attribute(time_interval, attribute, attribute_value)
+        pop_recommendations = PopularityRecommender.get_most_popular_articles_attribute(time_interval, attribute,
+                                                                                        attribute_value)
         collab_recommendations = CollaborativeRecommender.recommend_to_user(user_id, 20)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global()
         recommendations = [r for r in collab_recommendations if

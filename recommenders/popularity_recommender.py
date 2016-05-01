@@ -142,4 +142,5 @@ class PopularityRecommender:
 
     @classmethod
     def get_most_popular_articles_attribute(cls, time_interval, attribute, attribute_value, count=50):
-        redis.zrange(cls.redis_key_for_attribute(time_interval, attribute, attribute_value), 0, count, withscores=True, desc=True)
+        redis.zrange(cls.redis_key_for_attribute(time_interval, attribute, attribute_value), 0, count, withscores=True,
+                     desc=True)

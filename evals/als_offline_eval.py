@@ -82,7 +82,7 @@ print('finish data loading')
 # PREPARE_PARAMETERS_TO_TEST_OUT
 SEED = 42
 RANKS = [3, 5, 6, 7 8, 10, 15, 20, 30, 40, 50]  # number of hidden latent factors
-ITERATIONS =  [1, 5, 8, 10, 15, 20, 30]  # lambda is automatically scaled
+ITERATIONS = [1, 5, 8, 10, 15, 20, 30]  # lambda is automatically scaled
 user_id_counts = len(users_ids_to_evaluate)
 
 # ITERATE OVER OPTIONS, BUILD MODEL ON TRAIN DATA, EVAL on TEST_DATA, STORE RESULTS
