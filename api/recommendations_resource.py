@@ -10,7 +10,7 @@ class RecommendationsResource:
     WEIGHTS_KEY = '2'
     RECS_KEY = '3'
 
-    def on_post(self, req, resp, algorithm, time_interval):
+    def on_post(self, req, resp, algorithm):
         body = req.stream.read()
         if not body:
             raise falcon.HTTPBadRequest('Empty request body',

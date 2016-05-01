@@ -39,6 +39,6 @@ while True:
     except Exception:
         pass
     finally:
-        time.sleep(1)
+        time.sleep(100)
 
 # TODO: use background processes, separate class

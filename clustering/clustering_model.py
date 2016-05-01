@@ -33,3 +33,7 @@ class ClusteringModel:
     def build_model_path(k, iters):
         return str('kmeans_clustering:' + 'k:' + str(k) + ':iters:' + str(
             iters))
+
+    @classmethod
+    def update_model(cls):
+        pass #TODO: load new items from es, do temp model load, switch MODEL to the new one
