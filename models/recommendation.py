@@ -45,6 +45,9 @@ class Recommendation:
                         },
                         "limit": {
                             "type": "integer", "index": "not_analyzed", "store": "true"
+                        },
+                        "encoded_context": {
+                            "type": "integer", "store": 'true', "index": "not_analyzed"
                         }
                     }
                 }
@@ -52,17 +55,18 @@ class Recommendation:
         }
         return index
 
+    # DO NOT PERSIST IT JUST YET, way to slow : TODO: async processing - what about sc (SparkContext) ?!
     def __init__(self, content):
-        self.id  = None
-        self.body = {}
+        self.cluster_id = None
         self.content = content
-        self.extracted_content = Context(content).extract_to_json()
         self.parse_body()
-        self.persist()
         self.user_id = self.body['user_id']
         self.limit = self.content['limit']
+        self.predict_context_cluster()
 
     def parse_body(self):
+        self.body = {}
+        self.extracted_content = Context(self.content).extract_to_json()
         for rec_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
             self.body[rec_property] = self.extracted_content[Context.MAPPINGS_INV[rec_property]]
 
@@ -86,8 +90,9 @@ class Recommendation:
         if res['created']:
             self.id = res['_id']
 
-    @classmethod
-    def predict_context_cluster(cls, rec_req):
-        context_vec = ContextEncoder.encode_context_to_dense_vec(rec_req.extracted_content)
-        cluster = ClusteringModel.predict_cluster(context_vec)
-        return cluster
+    def predict_context_cluster(self):
+        self.context_vec = ContextEncoder.encode_context_to_dense_vec(self.extracted_content)
+        self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
+
+        # self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
+        #  TODO if we are storing it to es, probably not ever needed, do it only for impression

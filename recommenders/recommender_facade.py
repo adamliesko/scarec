@@ -1,50 +1,68 @@
-from rediser import redis
 from recommenders.popularity_recommender import PopularityRecommender
+from recommender_strategies import recommender_strategies
 
 
 class RecommenderFacade:
+    ALGORITHM_STRATEGY_MAP = {
+        '1': {'class': 'AttributeCollaborativePopularityRecencyStrategy', 'attr': 'cluster_id'},
+        '2': {'class': 'AttributeCollaborativePopularityRecencyStrategy', 'attr': 'domain_id'},
+        '3': {'class': 'AttributeCollaborativePopularityRecencyStrategy', 'attr': 'publisher_id'},
+        '4': {'class': 'AttributeCollaborativePopularityStrategy', 'attr': 'cluster_id'},
+        '5': {'class': 'AttributeCollaborativePopularityStrategy', 'attr': 'domain_id'},
+        '6': {'class': 'AttributeCollaborativePopularityStrategy', 'attr': 'publisher_id'},
+
+        '7': {'class': 'AttributePopularityRecencyStrategy', 'attr': 'cluster_id'},
+        '8': {'class': 'AttributePopularityRecencyStrategy', 'attr': 'domain_id'},
+        '9': {'class': 'AttributePopularityRecencyStrategy', 'attr': 'publisher_id'},
+
+        '10': {'class': 'AttributePopularityStrategy', 'attr': 'cluster_id'},
+        '11': {'class': 'AttributePopularityStrategy', 'attr': 'domain_id'},
+        '12': {'class': 'AttributePopularityStrategy', 'attr': 'publisher_id'},
+
+        '13': 'GlobalCollaborativePopularityRecencyStrategy',
+        '14': 'GlobalCollaborativePopularityStrategy',
+        '15': 'GlobalCollaborativeRecencyStrategy',
+        '16': 'GlobalCollaborativeStrategy',
+        '17': 'GlobalPopularityRecencyStrategy',
+        '18': 'GlobalPopularityStrategy',
+        '19': 'GlobalRecencyStrategy'
+    }
+
+    BEST_PERFORMING_TIME_INTERVAL = '4'
+
     @classmethod
-    def recommend_to_user(cls, recommendation_rec, algorithm, time_interval):
-        user_id = recommendation_rec.user_id
-        data = recommendation_rec.content
-        limit = recommendation_rec.limit
+    def recommend_to_user(cls, recommendation_req, algorithm_no, time_interval=BEST_PERFORMING_TIME_INTERVAL):
+        user_id = recommendation_req.user_id
+        limit = recommendation_req.limit
 
-        if algorithm == 'popular_global':
-            recommendations = cls.recommend_popular_global(time_interval)
+        algorithm = cls.ALGORITHM_STRATEGY_MAP[str(algorithm_no)]
+        if isinstance(algorithm, str):
+            recommendations = cls.global_based_recommendations(algorithm, time_interval, user_id)
         else:
-            attribute = algorithm.split('_')[-1]
-            attribute_value = data[attribute]
-            recommendations = cls.recommend_popular_attribute(attribute, attribute_value, time_interval)
+            recommendations = cls.attribute_based_recommendations(algorithm, recommendation_req, time_interval, user_id)
 
-        if user_id:
-            user_visits = redis.zrange('user_impressions:' + str(user_id), 0, -1)
-            user_visits = [int(visit) for visit in user_visits]
-            final_recommendations = [int(rec) for rec in recommendations if rec not in set(user_visits)]
+        if len(recommendations) >= limit:
+            recommended_articles = [int(r) for r in recommendations[0:limit].keys()]
         else:
-            final_recommendations = [int(rec) for rec in recommendations]
-
-        if len(final_recommendations) > 0:
-            recommended_articles = final_recommendations[0:limit]
-        else:
-            global_most_popular = cls.recommend_popular_global(time_interval)
-            recommended_articles = [int(r) for r in list(global_most_popular.keys())[0:limit]]
+            global_most_popular = PopularityRecommender.get_most_popular_articles_global('4h', limit)
+            recommended_articles = [int(r) for r in list(global_most_popular.keys())]
 
         return recommended_articles
 
     @classmethod
-    def recommend_popular_global(cls, ti):
-        return PopularityRecommender.current_most_popular_global(ti)
+    def attribute_based_recommendations(cls, algorithm, recommendation_req, time_interval, user_id):
+        data = recommendation_req.content
+        attribute = algorithm['attr']
+        attribute_value = data[attribute]
+        klazz = algorithm['class']
+        StrategyCls = globals()[klazz]
+        rec_func = getattr(StrategyCls, 'recommend_to_user')
+        recommendations = rec_func(user_id, attribute, attribute_value, time_interval)
+        return recommendations
 
     @classmethod
-    def recommend_popular_attribute(cls, attribute, attribute_value, ti):
-        return PopularityRecommender.current_most_popular_attribute(ti, attribute, attribute_value)
-
-    # TODO: finish collaborative filtering
-    @classmethod
-    def recommend_collaborative_to_user(cls, user_id):
-        pass
-
-    # TODO: finish collaborative filtering
-    @classmethod
-    def recommend_collaborative_from_set(cls, user_id, articles):
-        pass
+    def global_based_recommendations(cls, algorithm, time_interval, user_id):
+        StrategyCls = globals()[algorithm]
+        rec_func = getattr(StrategyCls, "recommend_to_user")
+        recommendations = rec_func(user_id, time_interval)
+        return recommendations

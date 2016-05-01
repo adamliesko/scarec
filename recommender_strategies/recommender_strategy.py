@@ -3,7 +3,7 @@ from models.impression import Impression
 
 class RecommenderStrategy:
     @staticmethod
-    def recommend_to_user(user_id):
+    def recommend_to_user(user_id, time_interval):
         pass
 
     @staticmethod

@@ -16,11 +16,10 @@ class RecommendationsResource:
             raise falcon.HTTPBadRequest('Empty request body',
                                         'A valid JSON document is required.')
         data = json.loads(body.decode('utf-8'))
-        # logger.info('Received new recommendation request:' + data)
 
         recommendation_req = Recommendation(data)
         recommendation_req.persist()
-        recommendations = RecommenderFacade.recommend_to_user(recommendation_req, algorithm, time_interval)
+        recommendations = RecommenderFacade.recommend_to_user(recommendation_req, algorithm)
         response_body = self.build_recommendation_response(recommendations)
         resp.body = str(json.dumps(response_body))
         resp.status = falcon.HTTP_200

@@ -10,8 +10,8 @@ class GlobalPopularityRecencyStrategy(RecommenderStrategy):
         pop_recommendations = PopularityRecommender.get_most_popular_articles_global(time_interval)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global()
 
-        recommendations = ProductAggregator.merge_recommendations([2, 1],
+        recommendations = ProductAggregator.merge_recommendations([3, 1],
                                                                   [pop_recommendations, recency_recommendations])
         user_visits = RecommenderStrategy.user_impressions(user_id)
-        final_recommendations = [r for r, score in recommendations if r not in user_visits]
+        final_recommendations = sorted([r for r, score in recommendations.items() if r not in user_visits])
         return final_recommendations

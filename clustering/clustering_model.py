@@ -18,11 +18,11 @@ class ClusteringModel:
         model = KMeans.train(parsed_data, k, maxIterations=iterations, runs=1,
                              initializationMode="random")
 
-        model.save(sc, cls.build_model_path(k, iterations, 1))
+        model.save(sc, cls.build_model_path(k, iterations))
         return model
 
     @classmethod
-    def load_model(cls,path=os.environ.get('KMEANS_MODEL_PATH')):
+    def load_model(cls, path=os.environ.get('KMEANS_MODEL_PATH')):
         cls.MODEL = KMeansModel.load(sc, path)
 
     @classmethod
@@ -30,6 +30,6 @@ class ClusteringModel:
         return input_data.map(lambda context: ContextEncoder.encode_context_to_sparse_vec(context))
 
     @staticmethod
-    def build_model_path(k, iters, runs):
+    def build_model_path(k, iters):
         return str('kmeans_clustering:' + 'k:' + str(k) + ':iters:' + str(
-            iters) + ':runs:' + str(runs))
+            iters))

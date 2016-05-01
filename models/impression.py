@@ -70,12 +70,12 @@ class Impression:
         self.persist()
 
     def parse_body(self):
-        for impr_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
-            self.body[impr_property] = self.extracted_content[Context.MAPPINGS_INV[impr_property]]
+        for impression_property in self.PROPERTIES_TO_EXTRACT_AND_STORE:
+            self.body[impression_property] = self.extracted_content[Context.MAPPINGS_INV[impression_property]]
 
         self.add_domain_id()
         self.add_timestamp()
-        self.predict_context_cluster(self)
+        self.predict_context_cluster()
         self.body['cluster_id'] = self.cluster_id
 
     def add_domain_id(self):
@@ -110,8 +110,8 @@ class Impression:
     def update_impression_in_es(self):
         es.update(index=self.ES_ITEM_INDEX, id=self.id, doc_type=self.ES_ITEM_TYPE, body=self.body)
 
-    def predict_context_cluster(self, impression):
-        self.context_vec = ContextEncoder.encode_context_to_dense_vec(impression.extracted_content)
+    def predict_context_cluster(self):
+        self.context_vec = ContextEncoder.encode_context_to_dense_vec(self.extracted_content)
         self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
         self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
 

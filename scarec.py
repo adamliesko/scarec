@@ -24,6 +24,6 @@ events = EventsResource()
 errors = ErrorsResource()
 
 app.add_route('/item', items)
-app.add_route('/recommendation/{algorithm}/{time_interval}', recommendations)
+app.add_route('/recommendation/{algorithm}', recommendations)
 app.add_route('/event', events)
 app.add_route('/error', errors)

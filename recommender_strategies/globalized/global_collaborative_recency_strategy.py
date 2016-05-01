@@ -7,7 +7,7 @@ from recommenders.recency_recommender import RecencyRecommender
 
 class GlobalCollaborativeRecencyStrategy(RecommenderStrategy):
     @staticmethod
-    def recommend_to_user(user_id):
+    def recommend_to_user(user_id, _time_interval):
         user_visits = RecommenderStrategy.user_impressions(user_id)
         collab_recommendations = CollaborativeRecommender.recommend_to_user(user_id, 20)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global()
