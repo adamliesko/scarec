@@ -76,7 +76,10 @@ class ContextEncoder:
             else:
                 prop = key
             if isinstance(value, list):
-                value = value[0]
+                if len(value) > 0:
+                    value = value[0]
+                else:
+                    next
 
             # skip if not included in vector for clustering
             if prop in Context.MAPPINGS.keys():

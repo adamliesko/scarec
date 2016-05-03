@@ -6,12 +6,13 @@ from pyspark.mllib.recommendation import ALS, MatrixFactorizationModel
 from rediser import redis
 from spark_context import sc
 from utils import Utils
+from recommenders.abstract_recommender import AbstractRecommender
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class CollaborativeRecommender:
+class CollaborativeRecommender(AbstractRecommender):
     MODEL = None
     RANK = 5
     SEED = 42

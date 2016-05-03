@@ -1,7 +1,6 @@
 from recommenders.popularity_recommender import PopularityRecommender
 from recommender_strategies import recommender_strategies
 
-
 class RecommenderFacade:
     ALGORITHM_STRATEGY_MAP = {
         '1': {'class': 'AttributeCollaborativePopularityRecencyStrategy', 'attr': 'cluster_id'},
@@ -35,18 +34,21 @@ class RecommenderFacade:
         user_id = recommendation_req.user_id
         limit = recommendation_req.limit
 
-        algorithm = cls.ALGORITHM_STRATEGY_MAP[str(algorithm_no)]
-        if isinstance(algorithm, str):
-            recommendations = cls.global_based_recommendations(algorithm, time_interval, user_id)
-        else:
-            recommendations = cls.attribute_based_recommendations(algorithm, recommendation_req, time_interval, user_id)
+        if int(user_id) != 0:
+            algorithm = cls.ALGORITHM_STRATEGY_MAP[str(algorithm_no)]
+            if isinstance(algorithm, str):
+                recommendations = cls.global_based_recommendations(algorithm, time_interval, user_id)
+            else:
+                recommendations = cls.attribute_based_recommendations(algorithm, recommendation_req, time_interval, user_id)
 
-        if len(recommendations) >= limit:
-            recommended_articles = [int(r) for r in recommendations[0:limit].keys()]
+            if len(recommendations) >= limit:
+                recommended_articles = [int(r) for r in recommendations[0:limit].keys()]
+            else:
+                global_most_popular = PopularityRecommender.get_most_popular_articles_global('4h', limit)
+                recommended_articles = [int(r) for r in list(global_most_popular.keys())]
         else:
             global_most_popular = PopularityRecommender.get_most_popular_articles_global('4h', limit)
             recommended_articles = [int(r) for r in list(global_most_popular.keys())]
-
         return recommended_articles
 
     @classmethod

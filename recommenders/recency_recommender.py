@@ -1,9 +1,10 @@
 from elasticsearcher import es
 from rediser import redis
 from models.item import Item
+from recommenders.abstract_recommender import AbstractRecommender
 
 
-class RecencyRecommender:
+class RecencyRecommender(AbstractRecommender):
     DEFAULT_RECENCY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
 
     @classmethod

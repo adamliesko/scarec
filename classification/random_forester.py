@@ -30,3 +30,6 @@
 # # Save and load model
 # model.save(sc, "target/tmp/myRandomForestClassificationModel")
 # sameModel = RandomForestModel.load(sc, "target/tmp/myRandomForestClassificationModel")
+
+class RandomForester:
+    pass
