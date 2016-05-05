@@ -17,7 +17,7 @@ class Recommendation:
     def index_properties(cls):
         index = {
             "mappings": {
-                "impression": {
+                "recommendation": {
                     "properties": {
                         "publisher_id": {
                             "type": "integer", "index": "not_analyzed", "store": "true"

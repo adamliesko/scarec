@@ -3,16 +3,18 @@ import urllib.request
 import schedule
 
 
-def update_kmeans_model():
-    urllib.request.urlopen("localhost:80/ml_models/kmeans").read()
+class ModelRefresherScheduler:
+    @staticmethod
+    def update_kmeans_model(cls):
+        urllib.request.urlopen("localhost:80/ml_models/kmeans").read()
+
+    @staticmethod
+    def update_als_collaborative_model():
+        urllib.request.urlopen("localhost:80/ml_models/als").read()
 
 
-def update_als_collaborative_model():
-    urllib.request.urlopen("localhost:80/ml_models/als").read()
-
-
-schedule.every(2).hours.do(update_als_collaborative_model())
-schedule.every(24).hours.do(update_kmeans_model())
+schedule.every(2).hours.do(ModelRefresherScheduler.update_als_collaborative_model())
+schedule.every(24).hours.do(ModelRefresherScheduler.update_kmeans_model())
 
 while True:
     try:
@@ -21,5 +23,3 @@ while True:
         pass
     finally:
         time.sleep(100)
-
-# TODO: use background processes, separate class

@@ -17,6 +17,8 @@ class RecommenderFacade:
         '10': {'class': 'AttributePopularityStrategy', 'attr': 'cluster_id'},
         '11': {'class': 'AttributePopularityStrategy', 'attr': 'domain_id'},
         '12': {'class': 'AttributePopularityStrategy', 'attr': 'publisher_id'},
+        '20': {'class': 'AttributePopularityStrategy', 'attr': 'channel_id'},
+        '21': {'class': 'AttributePopularityStrategy', 'attr': 'category_id'},
 
         '13': 'GlobalCollaborativePopularityRecencyStrategy',
         '14': 'GlobalCollaborativePopularityStrategy',

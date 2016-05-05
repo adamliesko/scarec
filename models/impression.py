@@ -8,7 +8,6 @@ from clustering.clustering_model import ClusteringModel
 from utils import Utils
 
 
-# FIRST_TIME_SETUP: es.indices.create(index=Impression.ES_ITEM_INDEX, body=Impression.index_properties())
 
 class Impression:
     ES_ITEM_INDEX = 'impressions'
