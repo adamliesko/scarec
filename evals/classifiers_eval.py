@@ -206,7 +206,7 @@ def gbt_eval():
         for ic in GBT_NUMBER_OF_ITERATIONS:
             print('Iters count:' + str(ic))
             for d in GBT_DEPTH:
-                print('Depth:' + str(d))+
+                print('Depth:' + str(d))
                 model_id = 'gbt_model_ic_' + str(ic) + '_d_' + str(d)
                 start = time.time()
 

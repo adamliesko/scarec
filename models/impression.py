@@ -8,7 +8,6 @@ from clustering.clustering_model import ClusteringModel
 from utils import Utils
 
 
-
 class Impression:
     ES_ITEM_INDEX = 'impressions'
     ES_ITEM_TYPE = 'impression'
