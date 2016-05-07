@@ -60,20 +60,20 @@ item_train_files = ['/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-01.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-06.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-07.log']
 
-item_train_files_remote = ['/home/rec/PLISTA_DATA/als_eval/create_2013-06-01.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-02.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-03.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-04.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-05.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-06.log',
-                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-07.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-01.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-02.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-03.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-04.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-05.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-06.log',
-                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-07.log']
+item_train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/create_2013-06-01.log',
+                    '/home/rec/PLISTA_DATA/2013-06-02/create_2013-06-02.log',
+                    '/home/rec/PLISTA_DATA/2013-06-03/create_2013-06-03.log',
+                    '/home/rec/PLISTA_DATA/2013-06-04/create_2013-06-04.log',
+                    '/home/rec/PLISTA_DATA/2013-06-05/create_2013-06-05.log',
+                    '/home/rec/PLISTA_DATA/2013-06-06/create_2013-06-06.log',
+                    '/home/rec/PLISTA_DATA/2013-06-07/create_2013-06-07.log',
+                    '/home/rec/PLISTA_DATA/2013-06-01/update_2013-06-01.log',
+                    '/home/rec/PLISTA_DATA/2013-06-02update_2013-06-02.log',
+                    '/home/rec/PLISTA_DATA/2013-06-03/update_2013-06-03.log',
+                    '/home/rec/PLISTA_DATA/2013-06-04/update_2013-06-04.log',
+                    '/home/rec/PLISTA_DATA/2013-06-05/update_2013-06-05.log',
+                    '/home/rec/PLISTA_DATA/2013-06-06/update_2013-06-06.log',
+                    '/home/rec/PLISTA_DATA/2013-06-07/update_2013-06-07.log']
 
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
@@ -230,7 +230,7 @@ def learn_rf_models():
                                             categoricalFeaturesInfo={},
                                             numTrees=RF_NUMBER_OF_TREES, featureSubsetStrategy="auto",
                                             impurity='variance', maxDepth=RF_DEPTH, maxBins=len(publishers))
-        model.save(sc, '/Users/Adam/PycharmProjects/rf_models/' + model_id)
+        model.save(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
 
 # precision at 5
 # presicion at 10
@@ -240,3 +240,4 @@ def learn_rf_models():
 
 #load_train_data_into_redis(train_files_remote)
 load_item_domains_into_redis(item_train_files_remote)
+learn_rf_models()
