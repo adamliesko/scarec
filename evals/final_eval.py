@@ -31,6 +31,17 @@ train_files = ['/Users/Adam/PLISTA_DATASET/2013-06-01/impression_2013-06-01.log'
                '/Users/Adam/PLISTA_DATASET/2013-06-06/impression_2013-06-06.log',
                '/Users/Adam/PLISTA_DATASET/2013-06-07/impression_2013-06-07.log']
 
+train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
+               '/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
+               '/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
+               '/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
+               '/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
+               '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
+               '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
+
+/home/rec/PLISTA_DATA
+
+
 item_train_files = ['/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-01.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-02.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-03.log',
@@ -45,6 +56,21 @@ item_train_files = ['/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-01.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-05.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-06.log',
                     '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-07.log']
+
+item_train_files_remote = ['/home/rec/PLISTA_DATA/als_eval/create_2013-06-01.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-02.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-03.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-04.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-05.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-06.log',
+                    '/home/rec/PLISTA_DATA/als_eval/create_2013-06-07.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-01.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-02.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-03.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-04.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-05.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-06.log',
+                    '/home/rec/PLISTA_DATA/als_eval/update_2013-06-07.log']
 
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
@@ -208,4 +234,4 @@ def learn_rf_models():
 # ako sa to odvija po jednotlivych dnoch po teste
 # ako je to total
 
-#load_train_data_into_redis(train_files)
+load_train_data_into_redis(train_files_remote)
