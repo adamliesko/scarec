@@ -36,13 +36,13 @@ train_files = ['/Users/Adam/PLISTA_DATASET/2013-06-01/impression_2013-06-01.log'
                '/Users/Adam/PLISTA_DATASET/2013-06-06/impression_2013-06-06.log',
                '/Users/Adam/PLISTA_DATASET/2013-06-07/impression_2013-06-07.log']
 
-train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
-               '/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
-               '/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
-               '/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
-               '/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
-               '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
-               '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
+train_files_remote = [#'/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
+               #'/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
+               #'/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
+               #'/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
+               #'/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
+               '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log']
+               #'/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
 
 
 item_train_files = ['/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-01.log',
@@ -133,13 +133,16 @@ def load_train_data_into_redis(files):
                     redis.hincrby(global_popularity_key, item_id, 1)
 
                 # load data for CLASSIFIER
-                context = Context(jsond).extract_to_json()
-                enc_context = ContextEncoder.encode_context_to_dense_vec(context)
-                cluster_id = ClusteringModel.predict_cluster(enc_context)
+                try:
+                  context = Context(jsond).extract_to_json()
+                  enc_context = ContextEncoder.encode_context_to_dense_vec(context)
+                  cluster_id = ClusteringModel.predict_cluster(enc_context)
+                except Exception:
+                  continue
                 if jsond['context'].get('clusters', None):
                     kws = jsond['context']['clusters'].get('33', None)
                     r = redis.pipeline()
-                    if kws:
+                    if kws and isinstance(kws, dict):
                         for k, v in kws.items():
                             r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
@@ -238,5 +241,5 @@ def learn_rf_models():
 # ako sa to odvija po jednotlivych dnoch po teste
 # ako je to total
 
-#load_train_data_into_redis(train_files_remote)
-load_item_domains_into_redis(item_train_files_remote)
+load_train_data_into_redis(train_files_remote)
+#load_items_domain_into_redis(item_train_files_remote)

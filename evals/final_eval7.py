@@ -36,12 +36,12 @@ train_files = ['/Users/Adam/PLISTA_DATASET/2013-06-01/impression_2013-06-01.log'
                '/Users/Adam/PLISTA_DATASET/2013-06-06/impression_2013-06-06.log',
                '/Users/Adam/PLISTA_DATASET/2013-06-07/impression_2013-06-07.log']
 
-train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
-               '/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
-               '/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
-               '/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
-               '/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
-               '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
+train_files_remote = [#'/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
+               #'/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
+               #'/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
+               #'/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
+               #'/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
+               #'/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
                '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
 
 
@@ -238,5 +238,5 @@ def learn_rf_models():
 # ako sa to odvija po jednotlivych dnoch po teste
 # ako je to total
 
-#load_train_data_into_redis(train_files_remote)
-load_item_domains_into_redis(item_train_files_remote)
+load_train_data_into_redis(train_files_remote)
+#load_items_domain_into_redis(item_train_files_remote)
