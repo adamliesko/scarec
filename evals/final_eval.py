@@ -240,6 +240,7 @@ def learn_als_model():
     train_RDD = train_user_items_rdd_split.map(lambda visit: (int(visit[0]), int(visit[1]), 1))  # use 1 for seen
     train_RDD.cache()
 
+    print(train_RDD.count())
     print('finish data loading')
     SEED = 42
     RANK = 5  # number of hidden latent factors
@@ -248,7 +249,7 @@ def learn_als_model():
     start = time.time()
     model = ALS.trainImplicit(train_RDD, RANK, seed=SEED,
                                   iterations=ITERATIONS)
-    model.save(sc, os.environ.get())
+    model.save(sc, os.environ.get('ALS_MODEL_PATH'))
     delta = time.time() - start
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
