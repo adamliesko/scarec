@@ -232,6 +232,27 @@ def learn_rf_models():
                                             impurity='variance', maxDepth=RF_DEPTH, maxBins=len(publishers))
         model.save(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
 
+def learn_als_model():
+    print('starting als = loading data')
+    train_user_items_pre_rdd = redis.smembers('train:final_eval:als:user_item_interactions')
+    train_user_items_rdd = sc.parallelize(train_user_items_pre_rdd)
+    train_user_items_rdd_split = train_user_items_rdd.map(lambda pair_string: pair_string.decode('utf-8').split(':'))
+    train_RDD = train_user_items_rdd_split.map(lambda visit: (int(visit[0]), int(visit[1]), 1))  # use 1 for seen
+    train_RDD.cache()
+
+    print('finish data loading')
+    SEED = 42
+    RANK = 5  # number of hidden latent factors
+    ITERATIONS = 15  # lambda is automatically scaled
+
+    start = time.time()
+    model = ALS.trainImplicit(train_RDD, RANK, seed=SEED,
+                                  iterations=ITERATIONS)
+    model.save(sc, os.environ.get())
+    delta = time.time() - start
+    print(str(delta))
+    redis.set('final_eval:als:time_taken', delta)
+
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -239,5 +260,6 @@ def learn_rf_models():
 # ako je to total
 
 #load_train_data_into_redis(train_files_remote)
-load_item_domains_into_redis(item_train_files_remote)
-learn_rf_models()
+#load_item_domains_into_redis(item_train_files_remote)
+#learn_rf_models()
+learn_als_model()
