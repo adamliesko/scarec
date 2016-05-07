@@ -119,7 +119,7 @@ class Impression:
         impressions = redis.zrange(key, 0, -1, True)
         return impressions
 
-    @staticmethod
+    @staticmethod # windowed visits for more efficient als model re-learning
     def store_windowed_visit_to_redis(user_id, item_id):
         key_visits_in_last_hour = 'windowed_visits:' + str(
             Utils.round_time_to_last_hour_as_epoch())

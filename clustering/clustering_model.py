@@ -24,6 +24,7 @@ class ClusteringModel:
     @classmethod
     def load_model(cls, path=os.environ.get('KMEANS_MODEL_PATH')):
         cls.MODEL = KMeansModel.load(sc, path)
+        return cls.MODEL
 
     @classmethod
     def parse_data(cls, input_data):

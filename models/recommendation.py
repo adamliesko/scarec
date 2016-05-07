@@ -55,9 +55,13 @@ class Recommendation:
         }
         return index
 
-    # DO NOT PERSIST IT JUST YET, way to slow : TODO: async processing - what about sc (SparkContext) ?!
+    # DO NOT PERSIST IT JUST YET, way too slow : TODO: async processing - what about sc (SparkContext) ?!
     def __init__(self, content):
+        self.id = None
         self.cluster_id = None
+        self.body = None
+        self.extracted_content = None
+        self.context_vec = None
         self.content = content
         self.parse_body()
         self.user_id = self.body['user_id']

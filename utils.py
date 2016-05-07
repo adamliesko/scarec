@@ -39,5 +39,4 @@ class Utils:
         decoded_val = redis.get(key)
         return decoded_val.decode('utf-8')
 
-
-Utils.init_key_indices()  # run only once
+Utils.init_key_indices()  # run only once on init

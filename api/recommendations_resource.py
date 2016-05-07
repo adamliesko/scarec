@@ -7,8 +7,9 @@ from recommenders.recommender_facade import RecommenderFacade
 
 
 class RecommendationsResource:
-    WEIGHTS_KEY = '2'
-    RECS_KEY = '3'
+    WEIGHTS_KEY = '2'  # index for weights of recommendations, not used in our case, it is prefilled statically
+    WEIGHT = 0.9
+    RECS_KEY = '3'  # index for actual recommendations for PLISTA
 
     def on_post(self, req, resp, algorithm):
         body = req.stream.read()
@@ -27,5 +28,5 @@ class RecommendationsResource:
     def build_recommendation_response(self, recommendations):
         resp = {"recs": {}}
         resp["recs"]["ints"] = {self.RECS_KEY: recommendations}
-        resp["recs"]["floats"] = {self.WEIGHTS_KEY: [0.5] * len(recommendations)}
+        resp["recs"]["floats"] = {self.WEIGHTS_KEY: [self.WEIGHT] * len(recommendations)}
         return resp

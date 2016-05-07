@@ -4,9 +4,6 @@ from rediser import redis
 import time
 
 
-# FIRST_TIME_SETUP: es.indices.create(index=Item.ES_ITEM_INDEX, body=Item.index_properties())
-
-
 class Item:
     ES_ITEM_INDEX = 'items'
     ES_ITEM_TYPE = 'article'
