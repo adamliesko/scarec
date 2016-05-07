@@ -68,7 +68,7 @@ item_train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/create_2013-06-01.l
                     '/home/rec/PLISTA_DATA/2013-06-06/create_2013-06-06.log',
                     '/home/rec/PLISTA_DATA/2013-06-07/create_2013-06-07.log',
                     '/home/rec/PLISTA_DATA/2013-06-01/update_2013-06-01.log',
-                    '/home/rec/PLISTA_DATA/2013-06-02update_2013-06-02.log',
+                    '/home/rec/PLISTA_DATA/2013-06-02/update_2013-06-02.log',
                     '/home/rec/PLISTA_DATA/2013-06-03/update_2013-06-03.log',
                     '/home/rec/PLISTA_DATA/2013-06-04/update_2013-06-04.log',
                     '/home/rec/PLISTA_DATA/2013-06-05/update_2013-06-05.log',
