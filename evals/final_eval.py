@@ -212,11 +212,11 @@ def precompute_rf_recs_test():
 
             # load it into Spark context
     all_items_rdd = sc.parallelize(all_items)
+    data = all_items_rdd
 
     # precompute recs for each cluster, store all of them in redis sorted sets
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
         print('Recommending for cluster:' + str(cluster_id))
-        data = all_items_rdd.map(lambda item: [item[0], Vectors.dense(item[1])])
         model_id = 'cluster_id_' + str(cluster_id)
         model = RandomForestModel.load(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
         predictions = model.predict(data.map(lambda x: x[1]))
