@@ -35,7 +35,7 @@ train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.lo
                       '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
                       '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
 
-test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-08.log',
+test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log',
                      '/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log',
                      '/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log',
                      '/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log',
@@ -148,8 +148,8 @@ def load_test_data_into_redis(files):
                     r = redis.pipeline()
                     if kws:
                         for k, v in kws.items():
-                            r.hset(item_content_key + str(item_id), k, v)
-                    r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
+                            r.hset('test:' + str(day) + ':' + item_content_key + str(item_id), k, v)
+                    r.hset('test:' + str(day) + ':' + item_key + str(item_id), 'publisher_id', publisher_id)
                     r.execute()
 
                 try:
