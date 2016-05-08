@@ -123,7 +123,8 @@ def add_cluster_visit_day(phase, day, cluster_id, item_id):
     redis.sadd(key, item_id)
 
 
-def add_cluster_rf_recs(cluster_id, items):
+def add_cluster_rf_recs(cluster_id, items_rdd):
+    items = items_rdd.collect()
     key = cluster_recs_key + str(cluster_id)
     r = redis.pipeline()
     for item_id, prediction in items:
