@@ -4,7 +4,6 @@ import time
 import re
 import json
 
-
 sys.path.append('/home/rec/scarec/')
 sys.path.append('/home/rec/scarec/models/')
 sys.path.append('/home/rec/scarec/contextual/')
@@ -28,52 +27,46 @@ from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.tree import RandomForest, RandomForestModel
 from pyspark.mllib.util import MLUtils
 
-train_files = ['/Users/Adam/PLISTA_DATASET/2013-06-01/impression_2013-06-01.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-02/impression_2013-06-02.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-03/impression_2013-06-03.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-04/impression_2013-06-04.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-05/impression_2013-06-05.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-06/impression_2013-06-06.log',
-               '/Users/Adam/PLISTA_DATASET/2013-06-07/impression_2013-06-07.log']
-
 train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.log',
-               '/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
-               '/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
-               '/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
-               '/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
-               '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
-               '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
+                      '/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log',
+                      '/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log',
+                      '/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log',
+                      '/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log',
+                      '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
+                      '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
 
+test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-08.log',
+                     '/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log',
+                     '/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log',
+                     '/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log',
+                     '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log']
 
-item_train_files = ['/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-01.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-02.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-03.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-04.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-05.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-06.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/create_2013-06-07.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-01.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-02.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-03.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-04.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-05.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-06.log',
-                    '/Users/Adam/PLISTA_DATASET/als_eval/update_2013-06-07.log']
 
 item_train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/create_2013-06-01.log',
-                    '/home/rec/PLISTA_DATA/2013-06-02/create_2013-06-02.log',
-                    '/home/rec/PLISTA_DATA/2013-06-03/create_2013-06-03.log',
-                    '/home/rec/PLISTA_DATA/2013-06-04/create_2013-06-04.log',
-                    '/home/rec/PLISTA_DATA/2013-06-05/create_2013-06-05.log',
-                    '/home/rec/PLISTA_DATA/2013-06-06/create_2013-06-06.log',
-                    '/home/rec/PLISTA_DATA/2013-06-07/create_2013-06-07.log',
-                    '/home/rec/PLISTA_DATA/2013-06-01/update_2013-06-01.log',
-                    '/home/rec/PLISTA_DATA/2013-06-02/update_2013-06-02.log',
-                    '/home/rec/PLISTA_DATA/2013-06-03/update_2013-06-03.log',
-                    '/home/rec/PLISTA_DATA/2013-06-04/update_2013-06-04.log',
-                    '/home/rec/PLISTA_DATA/2013-06-05/update_2013-06-05.log',
-                    '/home/rec/PLISTA_DATA/2013-06-06/update_2013-06-06.log',
-                    '/home/rec/PLISTA_DATA/2013-06-07/update_2013-06-07.log']
+                           '/home/rec/PLISTA_DATA/2013-06-02/create_2013-06-02.log',
+                           '/home/rec/PLISTA_DATA/2013-06-03/create_2013-06-03.log',
+                           '/home/rec/PLISTA_DATA/2013-06-04/create_2013-06-04.log',
+                           '/home/rec/PLISTA_DATA/2013-06-05/create_2013-06-05.log',
+                           '/home/rec/PLISTA_DATA/2013-06-06/create_2013-06-06.log',
+                           '/home/rec/PLISTA_DATA/2013-06-07/create_2013-06-07.log',
+                           '/home/rec/PLISTA_DATA/2013-06-01/update_2013-06-01.log',
+                           '/home/rec/PLISTA_DATA/2013-06-02/update_2013-06-02.log',
+                           '/home/rec/PLISTA_DATA/2013-06-03/update_2013-06-03.log',
+                           '/home/rec/PLISTA_DATA/2013-06-04/update_2013-06-04.log',
+                           '/home/rec/PLISTA_DATA/2013-06-05/update_2013-06-05.log',
+                           '/home/rec/PLISTA_DATA/2013-06-06/update_2013-06-06.log',
+                           '/home/rec/PLISTA_DATA/2013-06-07/update_2013-06-07.log']
+
+item_test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/create_2013-06-08.log',
+                          '/home/rec/PLISTA_DATA/2013-06-09/create_2013-06-09.log',
+                          '/home/rec/PLISTA_DATA/2013-06-10/create_2013-06-10.log',
+                          '/home/rec/PLISTA_DATA/2013-06-11/create_2013-06-11.log',
+                          '/home/rec/PLISTA_DATA/2013-06-12/create_2013-06-12.log',
+                          '/home/rec/PLISTA_DATA/2013-06-08/update_2013-06-08.log',
+                          '/home/rec/PLISTA_DATA/2013-06-09/update_2013-06-09.log',
+                          '/home/rec/PLISTA_DATA/2013-06-10/update_2013-06-10.log',
+                          '/home/rec/PLISTA_DATA/2013-06-11/update_2013-06-11.log',
+                          '/home/rec/PLISTA_DATA/2013-06-12/update_2013-06-12.log']
 
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
@@ -111,10 +104,70 @@ def add_user(phase, user_id):
     redis.sadd(key, user_id)
 
 
+def add_cluster_visit(phase, cluster_id, item_id):
+    key = phase + ':final_eval:cluster_visits:cluster_id:' + str(cluster_id)
+    redis.sadd(key, item_id)
+
+
+def add_cluster_visit_day(phase, day, cluster_id, item_id):
+    key = phase + ':final_eval:cluster_visits:cluster_id:' + str(cluster_id) + ':day:' + str(day)
+    redis.sadd(key, item_id)
+
+
 item_content_key = 'final_eval:item_content:'
 item_key = 'final_eval:item:'
 cluster_visits_key = 'final_eval:classifiers:cluster_visits:'
 global_popularity_key = 'final_eval:global_popularity'
+
+test_user_count_key = 'final_eval:test_user_count'
+test_users_key = 'final_eval:test_users'
+
+
+def load_test_data_into_redis(files):
+    phase = 'test'
+    ClusteringModel.load_model()
+    day = 0
+    for file in files:
+        with open(file) as f:
+            print('processing file:' + file)
+            for line in f:
+                jsond = json.loads(line)
+                user_id = jsond['context']['simple'].get('57', None)
+                item_id = jsond['context']['simple'].get('25', None)
+                publisher_id = jsond['context']['simple'].get('27', None)
+
+                if user_id is None or str(user_id) == '0' or item_id is None:
+                    continue
+                add_user(phase, user_id)
+                add_user_day(phase, day, user_id)
+                add_user_visit(phase, user_id, item_id)
+                add_user_visit_day(phase, day, user_id, item_id)
+
+                if jsond['context'].get('clusters', None):
+                    kws = jsond['context']['clusters'].get('33', None)
+                    r = redis.pipeline()
+                    if kws:
+                        for k, v in kws.items():
+                            r.hset(item_content_key + str(item_id), k, v)
+                    r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
+                    r.execute()
+
+                try:
+                    context = Context(jsond).extract_to_json()
+                    enc_context = ContextEncoder.encode_context_to_dense_vec(context)
+                    cluster_id = ClusteringModel.predict_cluster(enc_context)
+                    add_cluster_visit(phase, cluster_id, item_id)
+                    add_cluster_visit_day(phase, day, cluster_id, item_id)
+                except Exception:
+                    continue
+        day += 1
+
+def load_item_contents_for_test():
+    pass
+
+def find_user_ids_to_evaluate():
+    pass
+
 
 def load_train_data_into_redis(files):
     ClusteringModel.load_model()
@@ -165,11 +218,10 @@ def load_item_domains_into_redis(files):
                 redis.hset(item_key + str(item_id), 'domain_id', domain_id)
 
 
-RF_NUMBER_OF_TREES = 125
-RF_DEPTH = 25
-
-
 def learn_rf_models():
+    RF_NUMBER_OF_TREES = 125
+    RF_DEPTH = 25
+
     domains_map = {}
     d_idx = 0
     publishers_map = {}
@@ -212,7 +264,7 @@ def learn_rf_models():
         if len(item_int_content.keys()) < 300:
             all_items.append(item_vector)
 
-        # load it into Spark context
+            # load it into Spark context
     all_items_rdd = sc.parallelize(all_items)
 
     # learn classifiers per clusters
@@ -232,6 +284,7 @@ def learn_rf_models():
                                             impurity='variance', maxDepth=RF_DEPTH, maxBins=len(publishers))
         model.save(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
 
+
 def learn_als_model():
     print('starting als = loading data')
     train_user_items_pre_rdd = redis.smembers('train:final_eval:als:user_item_interactions')
@@ -248,11 +301,12 @@ def learn_als_model():
 
     start = time.time()
     model = ALS.trainImplicit(train_RDD, RANK, seed=SEED,
-                                  iterations=ITERATIONS)
+                              iterations=ITERATIONS)
     model.save(sc, os.environ.get('ALS_MODEL_PATH'))
     delta = time.time() - start
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
+
 
 # precision at 5
 # presicion at 10
@@ -260,7 +314,9 @@ def learn_als_model():
 # ako sa to odvija po jednotlivych dnoch po teste
 # ako je to total
 
-#load_train_data_into_redis(train_files_remote)
-#load_item_domains_into_redis(item_train_files_remote)
-#learn_rf_models()
-learn_als_model()
+# load_train_data_into_redis(train_files_remote)
+# load_item_domains_into_redis(item_train_files_remote)
+# learn_rf_models()
+#learn_als_model()
+load_item_domains_into_redis(item_test_files_remote)
+load_test_data_into_redis(test_files_remote)
