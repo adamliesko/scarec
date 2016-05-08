@@ -68,6 +68,15 @@ item_test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/create_2013-06-08.lo
                           '/home/rec/PLISTA_DATA/2013-06-11/update_2013-06-11.log',
                           '/home/rec/PLISTA_DATA/2013-06-12/update_2013-06-12.log']
 
+item_content_key = 'final_eval:item_content:'
+item_key = 'final_eval:item:'
+cluster_visits_key = 'final_eval:classifiers:cluster_visits:'
+global_popularity_key = 'final_eval:global_popularity'
+
+test_user_count_key = 'final_eval:test_user_count'
+test_users_key = 'final_eval:test_users'
+
+cluster_recs_key  = 'final_eval:recs:cluster_id:'
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
     key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
@@ -114,14 +123,12 @@ def add_cluster_visit_day(phase, day, cluster_id, item_id):
     redis.sadd(key, item_id)
 
 
-item_content_key = 'final_eval:item_content:'
-item_key = 'final_eval:item:'
-cluster_visits_key = 'final_eval:classifiers:cluster_visits:'
-global_popularity_key = 'final_eval:global_popularity'
-
-test_user_count_key = 'final_eval:test_user_count'
-test_users_key = 'final_eval:test_users'
-
+def add_cluster_rf_recs(cluster_id, items):
+    key = cluster_recs_key + str(cluster_id)
+    r = redis.pipeline()
+    for item_id, prediction in items:
+        r.zadd(key, item_id, prediction)
+    r.execute()
 
 def load_test_data_into_redis(files):
     phase = 'test'
@@ -162,8 +169,57 @@ def load_test_data_into_redis(files):
                     continue
         day += 1
 
-def load_item_contents_for_test():
-    pass
+
+def precompute_rf_recs_test():
+    domains_map = {}
+    d_idx = 0
+    publishers_map = {}
+    p_idx = 0
+    all_items = []
+
+    # load vectors of items into memory
+    item_keys = redis.keys("final_eval:item:*")
+    for key in item_keys:
+        item_id = key.decode('utf-8')
+        splits = item_id.split(':')
+        item_id = splits[-1]
+        item_content = redis.hgetall(item_content_key + item_id)
+        item_int_content = {int(k): int(v) for k, v in item_content.items()}
+
+        item_content = redis.hgetall(key)
+        if item_content.get(b'domain_id', None) is not None:
+            long_domain_id = int(item_content.get(b'domain_id').decode('utf-8'))
+            if domains_map.get(long_domain_id, None) is not None:
+                item_int_content[0] = domains_map[long_domain_id]
+            else:
+                domains_map[long_domain_id] = int(d_idx)
+                item_int_content[0] = domains_map[long_domain_id]
+                d_idx += 1
+
+        if item_content.get(b'publisher_id', None) is not None:
+            long_publisher_id = int(item_content.get(b'publisher_id').decode('utf8'))
+            if publishers_map.get(long_publisher_id, None) is not None:
+                item_int_content[1] = publishers_map[long_publisher_id]
+            else:
+                publishers_map[long_publisher_id] = int(p_idx)
+                item_int_content[1] = publishers_map[long_publisher_id]
+                p_idx += 1
+
+        item_vector = [item_id, SparseVector(300, item_int_content)]
+        if len(item_int_content.keys()) < 300:
+            all_items.append(item_vector)
+
+            # load it into Spark context
+    all_items_rdd = sc.parallelize(all_items)
+
+    # precompute recs for each cluster, store all of them in redis sorted sets
+    for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
+        data = all_items_rdd.map(lambda item: LabeledPoint(item[0], item[1]))
+        model_id = 'cluster_id_' + str(cluster_id)
+        model = RandomForest.load(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
+        predictions = model.predict(data.map(lambda x: x.features))
+        idsAndPredictions = data.map(lambda lp: lp[0]).zip(predictions)
+        add_cluster_rf_recs(cluster_id, idsAndPredictions)
 
 def find_user_ids_to_evaluate():
     pass
@@ -319,4 +375,5 @@ def learn_als_model():
 # learn_rf_models()
 #learn_als_model()
 #load_item_domains_into_redis(item_test_files_remote)
-load_test_data_into_redis(test_files_remote)
+#load_test_data_into_redis(test_files_remote)
+precompute_rf_recs_test()
