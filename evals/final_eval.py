@@ -217,7 +217,7 @@ def precompute_rf_recs_test():
         print('Recommending for cluster:' + str(cluster_id))
         data = all_items_rdd.map(lambda item: LabeledPoint(item[0], item[1]))
         model_id = 'cluster_id_' + str(cluster_id)
-        model = RandomForest.load(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
+        model = RandomForestModel.load(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
         predictions = model.predict(data.map(lambda x: x.features))
         idsAndPredictions = data.map(lambda lp: lp[0]).zip(predictions)
         add_cluster_rf_recs(cluster_id, idsAndPredictions)
