@@ -16,7 +16,7 @@ from spark_context import sc
 from clustering.clustering_model import ClusteringModel
 from context import Context
 from context_encoder import ContextEncoder
-
+from pyspark.mllib.linalg import Vectors
 from pyspark.mllib.recommendation import ALS
 from pyspark.mllib.util import MLUtils
 from pyspark.mllib.clustering import KMeans
@@ -35,12 +35,11 @@ train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/impression_2013-06-01.lo
                       '/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log',
                       '/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log']
 
-test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log']
-                     #'/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log',
-                     #'/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log',
-                     #'/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log',
-                     #'/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log']
-
+test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log',
+                     '/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log',
+                     '/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log',
+                     '/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log',
+                     '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log']
 
 item_train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/create_2013-06-01.log',
                            '/home/rec/PLISTA_DATA/2013-06-02/create_2013-06-02.log',
@@ -67,6 +66,16 @@ item_test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/create_2013-06-08.lo
                           '/home/rec/PLISTA_DATA/2013-06-10/update_2013-06-10.log',
                           '/home/rec/PLISTA_DATA/2013-06-11/update_2013-06-11.log',
                           '/home/rec/PLISTA_DATA/2013-06-12/update_2013-06-12.log']
+
+item_content_key = 'final_eval:item_content:'
+item_key = 'final_eval:item:'
+cluster_visits_key = 'final_eval:classifiers:cluster_visits:'
+global_popularity_key = 'final_eval:global_popularity'
+
+test_user_count_key = 'final_eval:test_user_count'
+test_users_key = 'final_eval:test_users'
+
+cluster_recs_key = 'final_eval:recs:cluster_id:'
 
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
@@ -99,6 +108,21 @@ def add_user_day(phase, day_no, user_id):
     redis.sadd(key, user_id)
 
 
+def get_users_day(phase, day_no):
+    key = phase + ':final_eval:users_day:' + (str(day_no)) + ''
+    return redis.smembers(key)
+
+
+def get_user_day_visits(phase, day_no, user_id):
+    key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
+    return redis.smembers(key)
+
+
+def get_user_visits(phase, user_id):
+    key = phase + ':final_eval:user:' + str(user_id) + ':user_visits:'
+    return redis.smembers(key)
+
+
 def add_user(phase, user_id):
     key = phase + ':final_eval:users'
     redis.sadd(key, user_id)
@@ -114,19 +138,18 @@ def add_cluster_visit_day(phase, day, cluster_id, item_id):
     redis.sadd(key, item_id)
 
 
-item_content_key = 'final_eval:item_content:'
-item_key = 'final_eval:item:'
-cluster_visits_key = 'final_eval:classifiers:cluster_visits:'
-global_popularity_key = 'final_eval:global_popularity'
+def add_cluster_rf_recs(cluster_id, items_rdd):
+    items = items_rdd.collect()
+    key = cluster_recs_key + str(cluster_id)
+    r = redis.pipeline()
+    for item_id, prediction in items:
+        r.zadd(key, item_id, prediction)
+    r.execute()
 
-test_user_count_key = 'final_eval:test_user_count'
-test_users_key = 'final_eval:test_users'
 
-
-def load_test_data_into_redis(files):
+def load_test_data_into_redis(files, day):
     phase = 'test'
     ClusteringModel.load_model()
-    day = 0
     for file in files:
         with open(file) as f:
             print('processing file:' + file)
@@ -148,7 +171,7 @@ def load_test_data_into_redis(files):
                     r = redis.pipeline()
                     if kws:
                         for k, v in kws.items():
-                            r.hset( item_content_key + str(item_id), k, v)
+                            r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
                     r.execute()
 
@@ -160,13 +183,93 @@ def load_test_data_into_redis(files):
                     add_cluster_visit_day(phase, day, cluster_id, item_id)
                 except Exception:
                     continue
-        day += 1
 
-def load_item_contents_for_test():
-    pass
+
+def precompute_rf_recs_test():
+    domains_map = {}
+    d_idx = 0
+    publishers_map = {}
+    p_idx = 0
+    all_items = []
+
+    # load vectors of items into memory
+    item_keys = redis.keys("final_eval:item:*")
+    for key in item_keys:
+        item_id = key.decode('utf-8')
+        splits = item_id.split(':')
+        item_id = splits[-1]
+        item_content = redis.hgetall(item_content_key + item_id)
+        item_int_content = {int(k): int(v) for k, v in item_content.items()}
+
+        item_content = redis.hgetall(key)
+        if item_content.get(b'domain_id', None) is not None:
+            long_domain_id = int(item_content.get(b'domain_id').decode('utf-8'))
+            if domains_map.get(long_domain_id, None) is not None:
+                item_int_content[0] = domains_map[long_domain_id]
+            else:
+                domains_map[long_domain_id] = int(d_idx)
+                item_int_content[0] = domains_map[long_domain_id]
+                d_idx += 1
+
+        if item_content.get(b'publisher_id', None) is not None:
+            long_publisher_id = int(item_content.get(b'publisher_id').decode('utf8'))
+            if publishers_map.get(long_publisher_id, None) is not None:
+                item_int_content[1] = publishers_map[long_publisher_id]
+            else:
+                publishers_map[long_publisher_id] = int(p_idx)
+                item_int_content[1] = publishers_map[long_publisher_id]
+                p_idx += 1
+
+        item_vector = [item_id, SparseVector(300, item_int_content)]
+        if len(item_int_content.keys()) < 300:
+            all_items.append(item_vector)
+
+            # load it into Spark context
+    all_items_rdd = sc.parallelize(all_items)
+    data = all_items_rdd
+
+    # precompute recs for each cluster, store all of them in redis sorted sets
+    for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
+        print('Recommending for cluster:' + str(cluster_id))
+        model_id = 'cluster_id_' + str(cluster_id)
+        model = RandomForestModel.load(sc, os.environ.get('RF_MODEL_PATH_ROOT') + '/' + model_id)
+        predictions = model.predict(data.map(lambda x: x[1]))
+        idsAndPredictions = data.map(lambda x: x[0]).zip(predictions)
+        add_cluster_rf_recs(cluster_id, idsAndPredictions)
+
+
+# filter only users who had more than ten visits during the eval phases per day / global in all days
 
 def find_user_ids_to_evaluate():
-    pass
+
+    # visits per day
+    for day in [0,1,2,3,4]:
+        print('xxxxx ' + str(day))
+        addicted_ids_day = []
+        users = get_users_day('test', day)
+        print(len(users))
+        for user in users:
+            user_id = user.decode('utf-8')
+            visits = get_user_day_visits('test', day, user_id)
+            if len(visits) > 10:
+                addicted_ids_day.append(user_id)
+        print('Daily users to eval count ' + str(len(addicted_ids_day)))
+
+        redis.set('final_eval:users_to_eval_day:' + str(day), addicted_ids_day)
+
+    # global visits
+    addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
+                                  'test:final_eval:users_day:2', 'test:final_eval:users_day:3',
+                                  'test:final_eval:users_day:4')
+
+    addicted_ids = []
+    for user in addicted_users:
+        user_id = user.decode('utf-8')
+        visits = get_user_visits('test', user_id)
+        if len(visits) > 10:
+            addicted_ids.append(user_id)
+    print('Global users to eval count ' + str(len(addicted_ids)))
+    redis.set('final_eval:users_to_eval_all', addicted_ids)
 
 
 def load_train_data_into_redis(files):
@@ -307,7 +410,6 @@ def learn_als_model():
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
 
-
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -317,6 +419,15 @@ def learn_als_model():
 # load_train_data_into_redis(train_files_remote)
 # load_item_domains_into_redis(item_train_files_remote)
 # learn_rf_models()
-#learn_als_model()
-#load_item_domains_into_redis(item_test_files_remote)
-load_test_data_into_redis(test_files_remote)
+# learn_als_model()
+# load_item_domains_into_redis(item_test_files_remote)
+# load_test_data_into_redis(test_files_remote)
+# precompute_rf_recs_test()
+
+load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
+# load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
+
+#find_user_ids_to_evaluate()
