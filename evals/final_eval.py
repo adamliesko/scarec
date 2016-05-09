@@ -358,7 +358,7 @@ def global_eval():
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
-            als_user_recall_set_global.update(user)
+            als_user_recall_set_global.add(user)
         als_p10_global += (float(len(good_recs)) / 10.0)
 
         good_recs_5 = [rec for rec in als_recs[:5] if int(rec) in user_visits_global]
