@@ -307,6 +307,34 @@ def find_user_ids_to_evaluate():
     r.execute()
 
 
+def global_popularity_eval():
+    phase = 'test'
+    pop_p3_global_key = 'pop_:final_eval:metrics:global:p3'
+    pop_p5_global_key = 'pop_:final_eval:metrics:global:p5'
+    pop_p10_global_key = 'pop:final_eval:metrics:global:p10'
+    pop_user_recall_global_key = 'pop:final_eval:metrics:global:user_recall'
+
+    global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
+    global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
+    global_user_count = len(global_users_to_eval)
+    print('Global user count:' + str(global_user_count))
+
+
+    pop_p3_global = 0
+    pop_p5_global = 0
+    pop_p10_global = 0
+    pop_user_recall_global_set = set()
+
+    for user in global_users_to_eval:
+
+        user_visits_global = get_user_visits(phase, user)
+
+        # REDIS_WRITE_RESULTS
+        redis.set(pop_p3_global_key, pop_p3_global / float(global_user_count))
+        redis.set(pop_p5_global_key, pop_p5_global / float(global_user_count))
+        redis.set(pop_p10_global_key, pop_p10_global / float(global_user_count))
+        redis.set(pop_user_recall_global_key, len(pop_user_recall_global_set))
+
 def global_eval():
     phase = 'test'
     als_p3_global_key = 'als:final_eval:metrics:global:p3'
@@ -774,9 +802,9 @@ def load_train_visits_into_redis(files):
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-find_user_ids_to_evaluate()
+#find_user_ids_to_evaluate()
 
-global_eval()
+#global_eval()
 
 
 # learn_als_model()
@@ -801,3 +829,8 @@ def fix_redis_keys():
         item_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
         redis.set('decoded:item_id:' + (str(enc)), item_id)
+
+als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
+encoded_recs = als.recommendProductsForUsers(20)
+print(encoded_recs)
+print(encoded_recs.take(3))
