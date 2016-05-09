@@ -169,7 +169,7 @@ def load_test_data_into_redis(files, day):
                 if jsond['context'].get('clusters', None):
                     kws = jsond['context']['clusters'].get('33', None)
                     r = redis.pipeline()
-                    if kws:
+                    if kws and isinstance(kws, dict):
                         for k, v in kws.items():
                             r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
@@ -295,7 +295,7 @@ def load_train_data_into_redis(files):
                 if jsond['context'].get('clusters', None):
                     kws = jsond['context']['clusters'].get('33', None)
                     r = redis.pipeline()
-                    if kws:
+                    if kws and isinstance(kws, dict):
                         for k, v in kws.items():
                             r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
