@@ -41,7 +41,6 @@ test_files_remote = ['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log
                      '/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log',
                      '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log']
 
-
 item_train_files_remote = ['/home/rec/PLISTA_DATA/2013-06-01/create_2013-06-01.log',
                            '/home/rec/PLISTA_DATA/2013-06-02/create_2013-06-02.log',
                            '/home/rec/PLISTA_DATA/2013-06-03/create_2013-06-03.log',
@@ -76,7 +75,8 @@ global_popularity_key = 'final_eval:global_popularity'
 test_user_count_key = 'final_eval:test_user_count'
 test_users_key = 'final_eval:test_users'
 
-cluster_recs_key  = 'final_eval:recs:cluster_id:'
+cluster_recs_key = 'final_eval:recs:cluster_id:'
+
 
 def add_user_visit_day(phase, day_no, user_id, item_id):
     key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
@@ -108,6 +108,21 @@ def add_user_day(phase, day_no, user_id):
     redis.sadd(key, user_id)
 
 
+def get_users_day(phase, day_no):
+    key = phase + ':final_eval:users_day:' + (str(day_no)) + ''
+    return redis.smembers(key)
+
+
+def get_user_day_visits(phase, day_no, user_id):
+    key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
+    return redis.smembers(key)
+
+
+def get_user_visits(phase, user_id):
+    key = phase + ':final_eval:user:' + str(user_id) + ':user_visits:'
+    return redis.smembers(key)
+
+
 def add_user(phase, user_id):
     key = phase + ':final_eval:users'
     redis.sadd(key, user_id)
@@ -130,6 +145,7 @@ def add_cluster_rf_recs(cluster_id, items_rdd):
     for item_id, prediction in items:
         r.zadd(key, item_id, prediction)
     r.execute()
+
 
 def load_test_data_into_redis(files):
     phase = 'test'
@@ -156,7 +172,7 @@ def load_test_data_into_redis(files):
                     r = redis.pipeline()
                     if kws:
                         for k, v in kws.items():
-                            r.hset( item_content_key + str(item_id), k, v)
+                            r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
                     r.execute()
 
@@ -223,8 +239,37 @@ def precompute_rf_recs_test():
         idsAndPredictions = data.map(lambda x: x[0]).zip(predictions)
         add_cluster_rf_recs(cluster_id, idsAndPredictions)
 
+
+# filter only users who had more than ten visits during the eval phases per day / global in all days
+
 def find_user_ids_to_evaluate():
-    pass
+
+    # visits per day
+    for day in [0,1,2,3,4]:
+        addicted_ids_day = []
+        users = get_users_day('test', day)
+        for user in users:
+            user_id = user.decode('utf-8')
+            visits = get_user_day_visits('test', day, user_id)
+            if len(visits) > 10:
+                addicted_ids_day.append(user_id)
+        print('Daily users to eval count ' + str(len(addicted_ids_day)))
+
+        redis.set('final_eval:users_to_eval_day:' + str(day), addicted_ids_day)
+
+    # global visits
+    addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
+                                  'test:final_eval:users_day:2', 'test:final_eval:users_day:3',
+                                  'test:final_eval:users_day:4')
+
+    addicted_ids = []
+    for user in addicted_users:
+        user_id = user.decode('utf-8')
+        visits = get_user_visits('test', user_id)
+        if len(visits) > 10:
+            addicted_ids.append(user_id)
+    print('Global users to eval count ' + str(len(addicted_ids)))
+    redis.set('final_eval:users_to_eval_all', addicted_ids)
 
 
 def load_train_data_into_redis(files):
@@ -375,7 +420,8 @@ def learn_als_model():
 # load_train_data_into_redis(train_files_remote)
 # load_item_domains_into_redis(item_train_files_remote)
 # learn_rf_models()
-#learn_als_model()
-#load_item_domains_into_redis(item_test_files_remote)
-#load_test_data_into_redis(test_files_remote)
-precompute_rf_recs_test()
+# learn_als_model()
+# load_item_domains_into_redis(item_test_files_remote)
+# load_test_data_into_redis(test_files_remote)
+# precompute_rf_recs_test()
+find_user_ids_to_evaluate()
