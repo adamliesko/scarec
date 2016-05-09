@@ -741,7 +741,7 @@ def load_als_train_data_into_redis(files):
                 if user_id is not None or str(user_id) != '0' or item_id is not None:
                     encoded_user_id = Utils.encode_attribute('user_id', user_id)
                     encoded_item_id = Utils.encode_attribute('item_id', item_id)
-                    add_user_visit('test', int(user_id), int(item_id))
+                    add_user_visit('test', user_id, item_id)
                     als_add_user_item_interaction_als(phase, encoded_user_id, encoded_item_id)
 
 
