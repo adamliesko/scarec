@@ -430,7 +430,7 @@ def global_eval():
 
         # ES_CONTENT_BASED_RECS
 
-
+        redis.set('global_eval:user_count', global_user_count)
         # REDIS_WRITE_RESULTS
         redis.set(ctx_p3_global_key, ctx_p3_global / float(global_user_count))
         redis.set(ctx_p5_global_key, ctx_p5_global / float(global_user_count))
