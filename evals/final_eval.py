@@ -147,10 +147,9 @@ def add_cluster_rf_recs(cluster_id, items_rdd):
     r.execute()
 
 
-def load_test_data_into_redis(files):
+def load_test_data_into_redis(files, day):
     phase = 'test'
     ClusteringModel.load_model()
-    day = 0
     for file in files:
         with open(file) as f:
             print('processing file:' + file)
@@ -184,7 +183,6 @@ def load_test_data_into_redis(files):
                     add_cluster_visit_day(phase, day, cluster_id, item_id)
                 except Exception:
                     continue
-        day += 1
 
 
 def precompute_rf_recs_test():
@@ -412,7 +410,6 @@ def learn_als_model():
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
 
-
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -426,4 +423,11 @@ def learn_als_model():
 # load_item_domains_into_redis(item_test_files_remote)
 # load_test_data_into_redis(test_files_remote)
 # precompute_rf_recs_test()
-find_user_ids_to_evaluate()
+
+load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
+load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
+load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
+load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
+load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
+
+#find_user_ids_to_evaluate()
