@@ -292,7 +292,7 @@ def find_user_ids_to_evaluate():
     # global visits
     addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
                                   'test:final_eval:users_day:2', 'test:final_eval:users_day:3',
-                                  'test:final_eval:users_day:4', 'test:final-eval:users')
+                                  'test:final_eval:users_day:4')
 
     addicted_ids = []
     for user in addicted_users:
