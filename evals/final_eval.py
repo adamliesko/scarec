@@ -23,6 +23,7 @@ from pyspark.mllib.clustering import KMeans
 
 from pyspark.mllib.linalg import Vectors, SparseVector, DenseVector
 from pyspark.mllib.regression import LabeledPoint
+from pyspark.mllib.recommendation import ALS, MatrixFactorizationModel
 
 from pyspark.mllib.tree import RandomForest, RandomForestModel
 from pyspark.mllib.util import MLUtils
@@ -115,12 +116,12 @@ def get_users_day(phase, day_no):
 
 def get_user_day_visits(phase, day_no, user_id):
     key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
-    return redis.smembers(key)
+    return [int(v.decode('utf-8')) for v in redis.smembers(key)]
 
 
 def get_user_visits(phase, user_id):
     key = phase + ':final_eval:user:' + str(user_id) + ':user_visits:'
-    return redis.smembers(key)
+    return [int(v.decode('utf-8')) for v in redis.smembers(key)]
 
 
 def add_user(phase, user_id):
@@ -131,6 +132,11 @@ def add_user(phase, user_id):
 def add_cluster_visit(phase, cluster_id, item_id):
     key = phase + ':final_eval:cluster_visits:cluster_id:' + str(cluster_id)
     redis.sadd(key, item_id)
+
+
+def add_user_cluster(phase, cluster_id, user_id):
+    key = phase + ':final_eval:user_clusters:' + str(user_id)
+    redis.hincrby(key, cluster_id, 1)
 
 
 def add_cluster_visit_day(phase, day, cluster_id, item_id):
@@ -169,16 +175,16 @@ def load_test_data_into_redis(files, day):
                 if jsond['context'].get('clusters', None):
                     kws = jsond['context']['clusters'].get('33', None)
                     r = redis.pipeline()
-                    if kws:
+                    if kws and isinstance(kws,dict):
                         for k, v in kws.items():
                             r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
                     r.execute()
-
                 try:
                     context = Context(jsond).extract_to_json()
                     enc_context = ContextEncoder.encode_context_to_dense_vec(context)
                     cluster_id = ClusteringModel.predict_cluster(enc_context)
+                    add_user_cluster(phase, cluster_id, user_id)
                     add_cluster_visit(phase, cluster_id, item_id)
                     add_cluster_visit_day(phase, day, cluster_id, item_id)
                 except Exception:
@@ -241,9 +247,8 @@ def precompute_rf_recs_test():
 # filter only users who had more than ten visits during the eval phases per day / global in all days
 
 def find_user_ids_to_evaluate():
-
     # visits per day
-    for day in [0,1,2,3,4]:
+    for day in [0, 1, 2, 3, 4]:
         print('xxxxx ' + str(day))
         addicted_ids_day = []
         users = get_users_day('test', day)
@@ -271,14 +276,64 @@ def find_user_ids_to_evaluate():
     print('Global users to eval count ' + str(len(addicted_ids)))
     redis.set('final_eval:users_to_eval_all', addicted_ids)
 
+
 def eval():
-    p3 = 'final_eval:metrics:p3'
-    p5 = 'final_eval:metrics:p3'
-    p10 = 'final_eval:metrics:p3'
+    phase = 'test'
+    p3_global_key = 'final_eval:metrics:global:p3'
+    p5_global_key = 'final_eval:metrics:global:p5'
+    p10_global_key = 'final_eval:metrics:global:p10'
+    user_recall_global_key = 'final_eval:metrics:global:user_recall'
 
-    global_users_to_eval =2
-    global_user_count = 1
+    global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
+    global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
+    global_user_count = len(global_users_to_eval)
 
+    # GLOBAL_EVALS
+
+    als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
+    als.recommendProducts()
+    als_p3_global = 0
+    als_p5_global = 0
+    als_p10_global = 0
+    als_user_recall_global = 0
+    for user in global_users_to_eval:
+        user_visits_global = get_user_visits(phase, user)
+        encoded_user_id = Utils.encode_attribute('user_id', user)
+
+        # ALS_COLLAB_RECOMMENDATIONS
+        encoded_recs = als.recommendProducts(int(encoded_user_id), 10)
+
+        als_recs = []
+        for rec in encoded_recs:
+            rec_id = Utils.decode_attribute('item_id', int(rec.product))
+            als_recs.append(rec_id)
+
+        good_recs = [rec for rec in als_recs if rec in user_visits_global]
+        if len(good_recs) > 0:
+            als_user_recall_global += 1
+        als_p10_global += (float(len(good_recs)) / 10.0)
+
+        good_recs_5 = [rec for rec in als_recs if rec in user_visits_global[:5]]
+        als_p5_global += (float(len(good_recs_5)) / 5.0)
+
+        good_recs_3 = [rec for rec in als_recs if rec in user_visits_global[:3]]
+        als_p3_global += (float(len(good_recs_3)) / 3.0)
+
+
+        # CONTEXT_CLUSTERING RECS
+
+
+
+
+
+        # ES_CONTENT_BASED_RECS
+
+
+        # REDIS_WRITE_RESULTS
+
+
+
+        # PER_DAY_EVALS
 
 
 def load_train_data_into_redis(files):
@@ -419,6 +474,7 @@ def learn_als_model():
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
 
+
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -433,10 +489,10 @@ def learn_als_model():
 # load_test_data_into_redis(test_files_remote)
 # precompute_rf_recs_test()
 
-#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
-#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
-#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
-#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
-#load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
+# load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
+# load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
 
 find_user_ids_to_evaluate()
