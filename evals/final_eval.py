@@ -143,8 +143,8 @@ def add_user_cluster(phase, cluster_id, user_id):
 def get_user_clusters(phase, user_id):
     key = phase + ':final_eval:user_clusters:' + str(user_id)
     dictie = {}
-    for cluster_id, v in redis.hgetall(key):
-        dictie[int(cluster_id.decode('utf-8'))] = int(v)
+    for cluster_id, v in redis.hgetall(key).items():
+        dictie[int(cluster_id.decode('utf-8'))] = int(v.decode('utf-8'))
     return dictie
 
 
