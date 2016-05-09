@@ -322,6 +322,8 @@ def global_eval():
     ctx_recs = {}
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
         ctx_recs[cluster_id] = list(get_cluster_rf_recs(cluster_id).keys())
+        if not isinstance(ctx_recs[cluster_id], list):
+            ctx_recs[cluster_id] = [ctx_recs[cluster_id]]
 
     # GLOBAL_EVALS
 
