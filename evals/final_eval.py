@@ -320,9 +320,9 @@ def global_eval():
     print('Global user count:' + str(global_user_count))
 
     # LOAD CTX RECOMMENDATIONS
-    ctx_recs = {}
+    ctx_recs_glob = {}
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
-        ctx_recs[cluster_id] = list(get_cluster_rf_recs(cluster_id).keys())
+        ctx_recs_glob[cluster_id] = list(get_cluster_rf_recs(cluster_id).keys())
 
     # GLOBAL_EVALS
 
@@ -373,16 +373,9 @@ def global_eval():
             total_count += count
 
         for cluster, count in user_clusters.items():
-            print(cluster)
-            print(count)
-            print(ctx_recs)
             weight_of_cluster = float(count) / total_count
-            print(ctx_recs[cluster])
-            if type(ctx_recs[cluster]) != type([]):
-                ctx_recs[cluster] = [ctx_recs[cluster]]
-            print(ctx_recs[cluster])
 
-            ctx_recs = ctx_recs[cluster][:10]
+            ctx_recs = ctx_recs_glob[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
             if len(good_recs_10) > 0:
                 ctx_user_recall_set_global.add(user)
