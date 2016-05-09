@@ -384,7 +384,7 @@ def global_eval():
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             if rec_id != 'None':
                 als_recs.append(rec_id)
-                redis.zadd('als_recs:user_id:'+str(user), rec.id, rec.rating)
+                redis.zadd('als_recs:user_id:'+str(user), rec_id, rec.rating)
             if len(als_recs) >= 10:
                 break
 
