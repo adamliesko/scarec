@@ -329,6 +329,7 @@ def global_popularity_eval():
 
         user_visits_global = get_user_visits(phase, user)
 
+
         # REDIS_WRITE_RESULTS
         redis.set(pop_p3_global_key, pop_p3_global / float(global_user_count))
         redis.set(pop_p5_global_key, pop_p5_global / float(global_user_count))
@@ -383,8 +384,13 @@ def global_eval():
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             if rec_id != 'None':
                 als_recs.append(rec_id)
-            if len(als_recs):
+                redis.zadd('als_recs:user_id:'+str(user), rec.id, rec.rating)
+            if len(als_recs) >= 10:
                 break
+
+        if len(als_recs) < 10:
+            global_user_count -= 1
+            continue
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
@@ -804,12 +810,10 @@ def load_train_visits_into_redis(files):
 
 #find_user_ids_to_evaluate()
 
-#global_eval()
+global_eval()
 
 
 # learn_als_model()
-
-
 
 def fix_redis_keys():
     keys = redis.keys('decoded:*')
@@ -829,8 +833,3 @@ def fix_redis_keys():
         item_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
         redis.set('decoded:item_id:' + (str(enc)), item_id)
-
-als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
-encoded_recs = als.recommendProductsForUsers(20)
-print(encoded_recs)
-print(encoded_recs.take(3))
