@@ -344,7 +344,9 @@ def global_eval():
         encoded_recs = als.recommendProducts(int(encoded_user_id), 10)
 
         als_recs = []
+        print(encoded_recs)
         for rec in encoded_recs:
+            print(rec)
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             als_recs.append(rec_id)
 
