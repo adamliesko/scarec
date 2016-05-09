@@ -781,15 +781,17 @@ def fix_redis_keys():
     keys = redis.keys('decoded:*')
     for key in keys:
         redis.delete(key)
-        
+
     keys = redis.keys("encoded:user_id:*")
     for key in keys:
+        key = key.deocde('utf-8')
         user_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
         redis.set('decoded:user_id:'+(str(enc)), user_id)
 
     keys = redis.keys("encoded:item_id:*")
     for key in keys:
+        key = key.deocde('utf-8')
         item_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
         redis.set('decoded:item_id:'+(str(enc)), item_id)
