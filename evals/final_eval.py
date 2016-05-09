@@ -513,7 +513,6 @@ def per_day_eval_sole():
 
     als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
 
-
     for day in [0, 1, 2, 3, 4]:
         users_to_eval = redis.smembers('final_eval:users_to_eval_day:' + str(day))
         users_to_eval_count_day = len(users_to_eval)
@@ -528,7 +527,7 @@ def per_day_eval_sole():
         ctx_user_recall_set_day = set()
         als_user_recall_set_day = set()
         for user in users_to_eval:
-            user_visits_day= get_user_day_visits(phase, day, user)
+            user_visits_day = get_user_day_visits(phase, day, user)
             encoded_user_id = Utils.encode_attribute('user_id', user)
 
             # ALS_COLLAB_RECOMMENDATIONS
@@ -572,10 +571,10 @@ def per_day_eval_sole():
                 good_recs_3 = [rec for rec in ctx_recs[:3] if rec in user_visits_day]
                 ctx_p3_day += (float(len(good_recs_3)) / 3.0) * weight_of_cluster
 
-            # ES_CONTENT_BASED_RECS
+                # ES_CONTENT_BASED_RECS
 
 
-            # REDIS_WRITE_RESULTS
+                # REDIS_WRITE_RESULTS
         redis.set(ctx_p3_day_key + str(day), ctx_p3_day / float(users_to_eval_count_day))
         redis.set(ctx_p5_day_key + str(day), ctx_p5_day / float(users_to_eval_count_day))
         redis.set(ctx_p10_day_key + str(day), ctx_p10_day / float(users_to_eval_count_day))
@@ -772,9 +771,10 @@ def load_als_train_data_into_redis(files):
 
 # find_user_ids_to_evaluate()
 
-#global_eval()
+global_eval()
 
-#learn_als_model()
+
+# learn_als_model()
 
 
 def fix_redis_keys():
@@ -787,13 +787,11 @@ def fix_redis_keys():
         key = key.decode('utf-8')
         user_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
-        redis.set('decoded:user_id:'+(str(enc)), user_id)
+        redis.set('decoded:user_id:' + (str(enc)), user_id)
 
     keys = redis.keys("encoded:item_id:*")
     for key in keys:
         key = key.decode('utf-8')
         item_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
-        redis.set('decoded:item_id:'+(str(enc)), item_id)
-
-fix_redis_keys()
+        redis.set('decoded:item_id:' + (str(enc)), item_id)
