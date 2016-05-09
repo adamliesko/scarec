@@ -167,7 +167,7 @@ def get_cluster_rf_recs(cluster_id):
     items = redis.zrange(key, 0, -1, desc=True, withscores=True)
     dicties = {}
     for item, v in items:
-        dicties[int(item.decode('utf-8'))] = int(v.decode('utf-8'))
+        dicties[int(item.decode('utf-8'))] = int(v)
     return dicties
 
 
