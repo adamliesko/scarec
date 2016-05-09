@@ -326,7 +326,6 @@ def global_eval():
     # GLOBAL_EVALS
 
     als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
-    als.recommendProducts()
     als_p3_global = 0
     als_p5_global = 0
     als_p10_global = 0
