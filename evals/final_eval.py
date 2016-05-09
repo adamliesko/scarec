@@ -388,10 +388,6 @@ def global_eval():
             if len(als_recs) >= 10:
                 break
 
-        if len(als_recs) < 10:
-            global_user_count -= 1
-            continue
-
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
             print('hit als')
@@ -430,7 +426,6 @@ def global_eval():
 
         # ES_CONTENT_BASED_RECS
 
-        redis.set('global_eval:user_count', global_user_count)
         # REDIS_WRITE_RESULTS
         redis.set(ctx_p3_global_key, ctx_p3_global / float(global_user_count))
         redis.set(ctx_p5_global_key, ctx_p5_global / float(global_user_count))
