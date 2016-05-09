@@ -772,12 +772,16 @@ def load_als_train_data_into_redis(files):
 
 # find_user_ids_to_evaluate()
 
-global_eval()
+#global_eval()
 
 #learn_als_model()
 
 
 def fix_redis_keys():
+    keys = redis.keys('decoded:*')
+    for key in keys:
+        redis.delete(key)
+        
     keys = redis.keys("encoded:user_id:*")
     for key in keys:
         user_id = key.split(':')[-1]
@@ -789,3 +793,5 @@ def fix_redis_keys():
         item_id = key.split(':')[-1]
         enc = redis.get(key).decode('utf-8')
         redis.set('decoded:item_id:'+(str(enc)), item_id)
+
+fix_redis_keys()
