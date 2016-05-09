@@ -144,7 +144,7 @@ def get_user_clusters(phase, user_id):
     key = phase + ':final_eval:user_clusters:' + str(user_id)
     dictie = {}
     for cluster_id, v in redis.hgetall(key):
-        dictie[int(cluster_id.decode('utf-8'))] = int(v.decode('utf-8'))
+        dictie[int(cluster_id.decode('utf-8'))] = int(v)
     return dictie
 
 
@@ -397,7 +397,102 @@ def global_eval():
         redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
 
 
-def per_day_eval():
+def per_day_eval_cummulative():
+    phase = 'test'
+    als_p3_global_key = 'als:final_eval:metrics:global:p3'
+    als_p5_global_key = 'als:final_eval:metrics:global:p5'
+    als_p10_global_key = 'als:final_eval:metrics:global:p10'
+    als_user_recall_global_key = 'als:final_eval:metrics:global:user_recall'
+
+    ctx_p3_global_key = 'ctx:final_eval:metrics:global:p3'
+    ctx_p5_global_key = 'ctx:final_eval:metrics:global:p5'
+    ctx_p10_global_key = 'ctx:final_eval:metrics:global:p10'
+    ctx_user_recall_global_key = 'ctx:final_eval:metrics:global:user_recall'
+
+    global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
+    global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
+    global_user_count = len(global_users_to_eval)
+
+    # LOAD CTX RECOMMENDATIONS
+    ctx_recs = {}
+    for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
+        ctx_recs[cluster_id] = get_cluster_rf_recs(cluster_id)
+
+    # GLOBAL_EVALS
+
+    als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
+    als.recommendProducts()
+    als_p3_global = 0
+    als_p5_global = 0
+    als_p10_global = 0
+
+    ctx_p3_global = 0
+    ctx_p5_global = 0
+    ctx_p10_global = 0
+    ctx_user_recall_set_global = set()
+    als_user_recall_set_global = set()
+    for user in global_users_to_eval:
+        user_visits_global = get_user_visits(phase, user)
+        encoded_user_id = Utils.encode_attribute('user_id', user)
+
+        # ALS_COLLAB_RECOMMENDATIONS
+        encoded_recs = als.recommendProducts(int(encoded_user_id), 10)
+
+        als_recs = []
+        for rec in encoded_recs:
+            rec_id = Utils.decode_attribute('item_id', int(rec.product))
+            als_recs.append(rec_id)
+
+        good_recs = [rec for rec in als_recs if rec in user_visits_global]
+        if len(good_recs) > 0:
+            als_user_recall_set_global.update(user)
+        als_p10_global += (float(len(good_recs)) / 10.0)
+
+        good_recs_5 = [rec for rec in als_recs[:5] if rec in user_visits_global]
+        als_p5_global += (float(len(good_recs_5)) / 5.0)
+
+        good_recs_3 = [rec for rec in als_recs[:3] if rec in user_visits_global]
+        als_p3_global += (float(len(good_recs_3)) / 3.0)
+
+        # CONTEXT_CLUSTERING RECS
+
+        user_clusters = get_user_clusters(phase, user)
+        total_count = 0
+
+        for cluster, count in user_clusters:
+            total_count += count
+
+        for cluster, count in user_clusters:
+            weight_of_cluster = float(count) / total_count
+            ctx_recs = ctx_recs[cluster][:10]
+            good_recs_10 = [rec for rec in ctx_recs if rec in user_visits_global]
+            if good_recs_10 > 0:
+                ctx_user_recall_set_global.update(user)
+            ctx_p10_global += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
+
+            good_recs_5 = [rec for rec in ctx_recs[:5] if rec in user_visits_global]
+            ctx_p5_global += (float(len(good_recs_5)) / 5.0) * weight_of_cluster
+
+            good_recs_3 = [rec for rec in ctx_recs[:3] if rec in user_visits_global]
+            ctx_p3_global += (float(len(good_recs_3)) / 3.0) * weight_of_cluster
+
+        # ES_CONTENT_BASED_RECS
+
+
+        # REDIS_WRITE_RESULTS
+        redis.set(ctx_p3_global_key, ctx_p3_global / float(global_user_count))
+        redis.set(ctx_p5_global_key, ctx_p5_global / float(global_user_count))
+        redis.set(ctx_p10_global_key, ctx_p10_global / float(global_user_count))
+        redis.set(ctx_user_recall_global_key, len(ctx_user_recall_set_global))
+
+        # REDIS_WRITE_RESULTS
+        redis.set(als_p3_global_key, als_p3_global / float(global_user_count))
+        redis.set(als_p5_global_key, als_p5_global / float(global_user_count))
+        redis.set(als_p10_global_key, als_p10_global / float(global_user_count))
+        redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
+
+
+def per_day_eval_sole():
     phase = 'test'
     als_p3_global_key = 'als:final_eval:metrics:global:p3'
     als_p5_global_key = 'als:final_eval:metrics:global:p5'
@@ -657,6 +752,6 @@ def learn_als_model():
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-find_user_ids_to_evaluate()
+#find_user_ids_to_evaluate()
 
 global_eval()
