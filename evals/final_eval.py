@@ -375,6 +375,7 @@ def global_eval():
 
         for cluster, count in user_clusters.items():
             weight_of_cluster = float(count) / total_count
+            print(ctx_recs[cluster])
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
             if good_recs_10 > 0:
