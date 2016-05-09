@@ -379,7 +379,7 @@ def global_eval():
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
             if len(good_recs_10) > 0:
-                ctx_user_recall_set_global.update(user)
+                ctx_user_recall_set_global.add(user)
             ctx_p10_global += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
 
             good_recs_5 = [rec for rec in ctx_recs[:5] if int(rec) in user_visits_global]
@@ -452,7 +452,7 @@ def per_day_eval_cummulative():
 
         good_recs = [rec for rec in als_recs if rec in user_visits_global]
         if len(good_recs) > 0:
-            als_user_recall_set_global.update(user)
+            als_user_recall_set_global.add(user)
         als_p10_global += (float(len(good_recs)) / 10.0)
 
         good_recs_5 = [rec for rec in als_recs[:5] if rec in user_visits_global]
@@ -474,7 +474,7 @@ def per_day_eval_cummulative():
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if rec in user_visits_global]
             if good_recs_10 > 0:
-                ctx_user_recall_set_global.update(user)
+                ctx_user_recall_set_global.add(user)
             ctx_p10_global += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
 
             good_recs_5 = [rec for rec in ctx_recs[:5] if rec in user_visits_global]
@@ -545,7 +545,7 @@ def per_day_eval_sole():
 
             good_recs = [rec for rec in als_recs if rec in user_visits_day]
             if len(good_recs) > 0:
-                als_user_recall_set_day.update(user)
+                als_user_recall_set_day.add(user)
             als_p10_day += (float(len(good_recs)) / 10.0)
 
             good_recs_5 = [rec for rec in als_recs[:5] if rec in user_visits_day]
@@ -567,7 +567,7 @@ def per_day_eval_sole():
                 ctx_recs = ctx_recs[cluster][:10]
                 good_recs_10 = [rec for rec in ctx_recs if rec in user_visits_day]
                 if good_recs_10 > 0:
-                    ctx_user_recall_set_day.update(user)
+                    ctx_user_recall_set_day.add(user)
                 ctx_p10_day += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
 
                 good_recs_5 = [rec for rec in ctx_recs[:5] if rec in user_visits_day]
