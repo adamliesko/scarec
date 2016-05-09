@@ -375,6 +375,7 @@ def global_eval():
         for cluster, count in user_clusters.items():
             print(cluster)
             print(count)
+            print(ctx_recs)
             weight_of_cluster = float(count) / total_count
             print(ctx_recs[cluster])
             if type(ctx_recs[cluster]) != type([]):
