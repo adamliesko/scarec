@@ -317,7 +317,7 @@ def global_eval():
     global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
     global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
     global_user_count = len(global_users_to_eval)
-
+    print('Global user count:' + str(global_user_count))
     # LOAD CTX RECOMMENDATIONS
     ctx_recs = {}
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
@@ -378,7 +378,7 @@ def global_eval():
             print(ctx_recs[cluster])
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
-            if good_recs_10 > 0:
+            if len(good_recs_10) > 0:
                 ctx_user_recall_set_global.update(user)
             ctx_p10_global += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
 
