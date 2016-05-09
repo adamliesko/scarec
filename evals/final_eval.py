@@ -94,6 +94,9 @@ def als_add_user_visit_day(phase, day_no, user_id, item_id):
     key = phase + ':final_eval:als:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
     redis.sadd(key, item_id)
 
+def add_user(phase, user_id):
+    key = phase + ':final_eval:users'
+    redis.sadd(key, user_id)
 
 def als_add_user_visit(phase, user_id, item_id):
     key = phase + ':final_eval:als:user:' + str(user_id) + ':user_visits'
@@ -266,28 +269,30 @@ def precompute_rf_recs_test():
 # filter only users who had more than ten visits during the eval phases per day / global in all days
 
 def find_user_ids_to_evaluate():
-    # visits per day
+    test_users = redis.smembers('test:final_eval:users')
+    test_users = set([u.decode('utf-8') for u in test_users])
+
     for day in [0, 1, 2, 3, 4]:
-        print('xxxxx ' + str(day))
+        print(day)
         addicted_ids_day = []
         users = get_users_day('test', day)
-        print(len(users))
         for user in users:
             user_id = user.decode('utf-8')
             visits = get_user_day_visits('test', day, user_id)
             if len(visits) > 10:
                 addicted_ids_day.append(user_id)
-        print('Daily users to eval count ' + str(len(addicted_ids_day)))
 
         r = redis.pipeline()
         for user_id in addicted_ids_day:
-            r.sadd('final_eval:users_to_eval_day:' + str(day), int(user_id))
+            if user_id in test_users:
+                r.sadd('final_eval:users_to_eval_day:' + str(day), int(user_id))
         r.execute()
+        print(len(addicted_ids_day))
 
     # global visits
     addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
                                   'test:final_eval:users_day:2', 'test:final_eval:users_day:3',
-                                  'test:final_eval:users_day:4')
+                                  'test:final_eval:users_day:4', 'test:final-eval:users')
 
     addicted_ids = []
     for user in addicted_users:
@@ -732,7 +737,7 @@ def learn_als_model():
     redis.set('final_eval:als:time_taken', delta)
 
 
-def load_als_train_data_into_redis(files):
+def load_train_visits_into_redis(files):
     phase = 'train'
     for file in files:
         with open(file) as f:
@@ -740,13 +745,7 @@ def load_als_train_data_into_redis(files):
             for line in f:
                 jsond = json.loads(line)
                 user_id = jsond['context']['simple'].get('57', None)
-                item_id = jsond['context']['simple'].get('25', None)
-
-                if user_id is not None or str(user_id) != '0' or item_id is not None:
-                    encoded_user_id = Utils.encode_attribute('user_id', user_id)
-                    encoded_item_id = Utils.encode_attribute('item_id', item_id)
-                    add_user_visit('test', user_id, item_id)
-                    als_add_user_item_interaction_als(phase, encoded_user_id, encoded_item_id)
+                add_user(phase, user_id)
 
 
 # precision at 5
@@ -775,10 +774,11 @@ def load_als_train_data_into_redis(files):
 
 # find_user_ids_to_evaluate()
 
-global_eval()
+# global_eval()
 
 
 # learn_als_model()
+
 
 
 def fix_redis_keys():
