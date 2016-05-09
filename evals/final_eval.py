@@ -494,17 +494,18 @@ def per_day_eval_cummulative():
 
 def per_day_eval_sole():
     phase = 'test'
-    als_p3_global_key = 'als:final_eval:metrics:global:p3'
-    als_p5_global_key = 'als:final_eval:metrics:global:p5'
-    als_p10_global_key = 'als:final_eval:metrics:global:p10'
-    als_user_recall_global_key = 'als:final_eval:metrics:global:user_recall'
+    als_p3_day_key = 'als:final_eval:metrics:global:p3:day'
+    als_p5_day_key = 'als:final_eval:metrics:global:p5:day'
+    als_p10_day_key = 'als:final_eval:metrics:global:p10:day'
+    als_user_recall_day_key = 'als:final_eval:metrics:global:user_recall:day'
 
-    ctx_p3_global_key = 'ctx:final_eval:metrics:global:p3'
-    ctx_p5_global_key = 'ctx:final_eval:metrics:global:p5'
-    ctx_p10_global_key = 'ctx:final_eval:metrics:global:p10'
-    ctx_user_recall_global_key = 'ctx:final_eval:metrics:global:user_recall'
+    ctx_p3_day_key = 'ctx:final_eval:metrics:global:p3:day'
+    ctx_p5_day_key = 'ctx:final_eval:metrics:global:p5:day'
+    ctx_p10_day_key = 'ctx:final_eval:metrics:global:p10:day'
+    ctx_user_recall_day_key = 'ctx:final_eval:metrics:global:user_recall:day'
 
-    global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
+    users_to_eval
+    users_to_eval = redis.smembers('final_eval:users_to_eval_all')
     global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
     global_user_count = len(global_users_to_eval)
 
@@ -773,3 +774,4 @@ def load_als_train_data_into_redis(files):
 
 # global_eval()
 
+learn_als_model()
