@@ -367,10 +367,10 @@ def global_eval():
         user_clusters = get_user_clusters(phase, user)
         total_count = 0
 
-        for cluster, count in user_clusters:
+        for cluster, count in user_clusters.items():
             total_count += count
 
-        for cluster, count in user_clusters:
+        for cluster, count in user_clusters.items():
             weight_of_cluster = float(count) / total_count
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
