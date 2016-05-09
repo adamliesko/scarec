@@ -772,7 +772,7 @@ def load_train_visits_into_redis(files):
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-# find_user_ids_to_evaluate()
+find_user_ids_to_evaluate()
 
 # global_eval()
 
