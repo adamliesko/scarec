@@ -246,8 +246,10 @@ def find_user_ids_to_evaluate():
 
     # visits per day
     for day in [0,1,2,3,4]:
+        print('xxxxx ' + str(day))
         addicted_ids_day = []
         users = get_users_day('test', day)
+        print(len(users))
         for user in users:
             user_id = user.decode('utf-8')
             visits = get_user_day_visits('test', day, user_id)
