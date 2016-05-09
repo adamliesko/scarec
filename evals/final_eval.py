@@ -349,13 +349,13 @@ def global_eval():
             print(rec)
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             als_recs.append(rec_id)
+        print(als_recs)
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
             als_user_recall_set_global.update(user)
         als_p10_global += (float(len(good_recs)) / 10.0)
 
-        print(als_recs)
         good_recs_5 = [rec for rec in als_recs[:5] if int(rec) in user_visits_global]
         als_p5_global += (float(len(good_recs_5)) / 5.0)
 
