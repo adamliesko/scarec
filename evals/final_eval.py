@@ -271,6 +271,15 @@ def find_user_ids_to_evaluate():
     print('Global users to eval count ' + str(len(addicted_ids)))
     redis.set('final_eval:users_to_eval_all', addicted_ids)
 
+def eval():
+    p3 = 'final_eval:metrics:p3'
+    p5 = 'final_eval:metrics:p3'
+    p10 = 'final_eval:metrics:p3'
+
+    global_users_to_eval =2
+    global_user_count = 1
+
+
 
 def load_train_data_into_redis(files):
     ClusteringModel.load_model()
@@ -424,10 +433,10 @@ def learn_als_model():
 # load_test_data_into_redis(test_files_remote)
 # precompute_rf_recs_test()
 
-load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
-load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
-load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
-load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
-load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
+#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-08/impression_2013-06-08.log'], 0)
+#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-09/impression_2013-06-09.log'], 1)
+#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-10/impression_2013-06-10.log'], 2)
+#load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
+#load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
 
-#find_user_ids_to_evaluate()
+find_user_ids_to_evaluate()

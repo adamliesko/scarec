@@ -1,21 +1,26 @@
 from elasticsearcher import es
 from recommenders.abstract_recommender import AbstractRecommender
 
-
+# to do boost current item to max
 class ContentBasedRecommender(AbstractRecommender):
-    MAX_ARTICLES_RETRIEVED_FROM_REDIS = 50
-    DEFAULT_POPULARITY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
+    @classmethod
+    def get_mlt_recs_for_items(cls, item_ids, count=30):
+        docs = []
+        for item_id in item_ids:
+            doc = {"_index": 'items', "_type": "article", "_id": item_id}
+            docs.append(doc)
 
-   @classmethod
-   def get_mlt_recs_for_items(item_ids, count=30):
-     body = {
-        "query": { "more_like_this": {
+        body = {
+            "query": {"more_like_this": {
                 "fields": [
-                  'title', 'text'
-        ],
-        "docs": item_ids, "min_term_freq": 2, "max_query_terms": 40,
-        "min_word_length": 2 }
-        },
-        "size": count }
+                    'title', 'text'
+                ],
+                "like": docs, "min_term_freq": 1, "max_query_terms": 30,
+                "min_word_length": 1}
+            },
+            "size": count}
 
-        return es.search(index='items', body=body)
+        ret = es.search(index='items', body=body)
+        return ret['hits']['hits']
+
+print(ContentBasedRecommender.get_mlt_recs_for_items([370438112], 1))
