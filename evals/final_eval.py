@@ -773,11 +773,3 @@ def load_als_train_data_into_redis(files):
 
 # global_eval()
 
-keys = redis.keys('encoded_attr_id_idx:*')
-for k in keys:
-    key = k.decode('utf-8')
-    redis.delete(key)
-
-redis.delete('encoded_attr_id_idx:user_id')
-redis.delete('encoded_attr_id_idx:item_id')
-
