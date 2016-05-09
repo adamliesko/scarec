@@ -139,6 +139,7 @@ def add_user_cluster(phase, cluster_id, user_id):
     key = phase + ':final_eval:user_clusters:' + str(user_id)
     redis.hincrby(key, cluster_id, 1)
 
+
 def get_user_clusters(phase, user_id):
     key = phase + ':final_eval:user_clusters:' + str(user_id)
     dictie = {}
@@ -160,6 +161,7 @@ def add_cluster_rf_recs(cluster_id, items_rdd):
         r.zadd(key, item_id, prediction)
     r.execute()
 
+
 def get_cluster_rf_recs(cluster_id):
     key = cluster_recs_key + str(cluster_id)
     items = redis.zrange(key, 0, -1, desc=True, withscores=True)
@@ -167,6 +169,7 @@ def get_cluster_rf_recs(cluster_id):
     for item, v in items:
         dicties[int(item.decode('utf-8'))] = int(v.decode('utf-8'))
     return dicties
+
 
 def load_test_data_into_redis(files, day):
     phase = 'test'
@@ -190,7 +193,7 @@ def load_test_data_into_redis(files, day):
                 if jsond['context'].get('clusters', None):
                     kws = jsond['context']['clusters'].get('33', None)
                     r = redis.pipeline()
-                    if kws and isinstance(kws,dict):
+                    if kws and isinstance(kws, dict):
                         for k, v in kws.items():
                             r.hset(item_content_key + str(item_id), k, v)
                     r.hset(item_key + str(item_id), 'publisher_id', publisher_id)
@@ -275,7 +278,10 @@ def find_user_ids_to_evaluate():
                 addicted_ids_day.append(user_id)
         print('Daily users to eval count ' + str(len(addicted_ids_day)))
 
-        redis.set('final_eval:users_to_eval_day:' + str(day), addicted_ids_day)
+        r = redis.pipeline()
+        for user_id in addicted_ids_day:
+            r.sadd('final_eval:users_to_eval_day:' + str(day), int(user_id))
+        r.execute()
 
     # global visits
     addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
@@ -289,7 +295,10 @@ def find_user_ids_to_evaluate():
         if len(visits) > 10:
             addicted_ids.append(user_id)
     print('Global users to eval count ' + str(len(addicted_ids)))
-    redis.set('final_eval:users_to_eval_all', addicted_ids)
+    r = redis.pipeline()
+    for user_id in addicted_ids:
+        r.sadd('final_eval:users_to_eval_all', int(user_id))
+    r.execute()
 
 
 def global_eval():
@@ -372,20 +381,19 @@ def global_eval():
             good_recs_3 = [rec for rec in ctx_recs[:3] if int(rec) in user_visits_global]
             ctx_p3_global += (float(len(good_recs_3)) / 3.0) * weight_of_cluster
 
-
         # ES_CONTENT_BASED_RECS
 
 
         # REDIS_WRITE_RESULTS
-        redis.set(ctx_p3_global_key, ctx_p3_global/float(global_user_count))
-        redis.set(ctx_p5_global_key, ctx_p5_global/float(global_user_count))
-        redis.set(ctx_p10_global_key, ctx_p10_global/float(global_user_count))
+        redis.set(ctx_p3_global_key, ctx_p3_global / float(global_user_count))
+        redis.set(ctx_p5_global_key, ctx_p5_global / float(global_user_count))
+        redis.set(ctx_p10_global_key, ctx_p10_global / float(global_user_count))
         redis.set(ctx_user_recall_global_key, len(ctx_user_recall_set_global))
 
         # REDIS_WRITE_RESULTS
-        redis.set(als_p3_global_key, als_p3_global/float(global_user_count))
-        redis.set(als_p5_global_key, als_p5_global/float(global_user_count))
-        redis.set(als_p10_global_key, als_p10_global/float(global_user_count))
+        redis.set(als_p3_global_key, als_p3_global / float(global_user_count))
+        redis.set(als_p5_global_key, als_p5_global / float(global_user_count))
+        redis.set(als_p10_global_key, als_p10_global / float(global_user_count))
         redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
 
 
@@ -468,20 +476,19 @@ def per_day_eval():
             good_recs_3 = [rec for rec in ctx_recs[:3] if rec in user_visits_global]
             ctx_p3_global += (float(len(good_recs_3)) / 3.0) * weight_of_cluster
 
-
         # ES_CONTENT_BASED_RECS
 
 
         # REDIS_WRITE_RESULTS
-        redis.set(ctx_p3_global_key, ctx_p3_global/float(global_user_count))
-        redis.set(ctx_p5_global_key, ctx_p5_global/float(global_user_count))
-        redis.set(ctx_p10_global_key, ctx_p10_global/float(global_user_count))
+        redis.set(ctx_p3_global_key, ctx_p3_global / float(global_user_count))
+        redis.set(ctx_p5_global_key, ctx_p5_global / float(global_user_count))
+        redis.set(ctx_p10_global_key, ctx_p10_global / float(global_user_count))
         redis.set(ctx_user_recall_global_key, len(ctx_user_recall_set_global))
 
         # REDIS_WRITE_RESULTS
-        redis.set(als_p3_global_key, als_p3_global/float(global_user_count))
-        redis.set(als_p5_global_key, als_p5_global/float(global_user_count))
-        redis.set(als_p10_global_key, als_p10_global/float(global_user_count))
+        redis.set(als_p3_global_key, als_p3_global / float(global_user_count))
+        redis.set(als_p5_global_key, als_p5_global / float(global_user_count))
+        redis.set(als_p10_global_key, als_p10_global / float(global_user_count))
         redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
 
 
@@ -646,9 +653,10 @@ def learn_als_model():
 # load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
 # load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
 
-#find_user_ids_to_evaluate()
 
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
+
+find_user_ids_to_evaluate()
 
 global_eval()
