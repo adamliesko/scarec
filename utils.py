@@ -31,6 +31,7 @@ class Utils:
         else:
             new_val = redis.incr('encoded_attr_id_idx:' + str(attr))
             redis.set(key, new_val)
+            redis.set('decoded:' + str(attr) + ':' + str(new_val), val)
             return new_val
 
     @staticmethod  # visit, user for collaborative filtering int to long backwards conversion

@@ -775,6 +775,6 @@ def load_als_train_data_into_redis(files):
 # load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-02/impression_2013-06-02.log'])
 # load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-03/impression_2013-06-03.log'])
 #load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-04/impression_2013-06-04.log'])
-load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log'])
-# load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log'])
+#load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-05/impression_2013-06-05.log'])
+load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-06/impression_2013-06-06.log'])
 # load_als_train_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-07/impression_2013-06-07.log'])

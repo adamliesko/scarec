@@ -1,7 +1,7 @@
 from elasticsearcher import es
 from recommenders.abstract_recommender import AbstractRecommender
 
-# to do boost current item to max
+
 class ContentBasedRecommender(AbstractRecommender):
     @classmethod
     def get_mlt_recs_for_items(cls, item_ids, count=30):
@@ -22,5 +22,3 @@ class ContentBasedRecommender(AbstractRecommender):
 
         ret = es.search(index='items', body=body)
         return ret['hits']['hits']
-
-print(ContentBasedRecommender.get_mlt_recs_for_items([370438112], 1))

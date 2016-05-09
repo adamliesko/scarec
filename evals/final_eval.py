@@ -716,8 +716,8 @@ def learn_als_model():
     print(train_RDD.count())
     print('finish data loading')
     SEED = 42
-    RANK = 5  # number of hidden latent factors
-    ITERATIONS = 15  # lambda is automatically scaled
+    RANK = 20  # number of hidden latent factors
+    ITERATIONS = 30  # lambda is automatically scaled
 
     start = time.time()
     model = ALS.trainImplicit(train_RDD, RANK, seed=SEED,
@@ -726,6 +726,23 @@ def learn_als_model():
     delta = time.time() - start
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
+
+
+def load_als_train_data_into_redis(files):
+    phase = 'train'
+    for file in files:
+        with open(file) as f:
+            print('processing file:' + file)
+            for line in f:
+                jsond = json.loads(line)
+                user_id = jsond['context']['simple'].get('57', None)
+                item_id = jsond['context']['simple'].get('25', None)
+
+                if user_id is not None or str(user_id) != '0' or item_id is not None:
+                    encoded_user_id = Utils.encode_attribute('user_id', user_id)
+                    encoded_item_id = Utils.encode_attribute('item_id', item_id)
+                    add_user_visit('test', int(user_id), int(item_id))
+                    als_add_user_item_interaction_als(phase, encoded_user_id, encoded_item_id)
 
 
 # precision at 5
@@ -752,6 +769,15 @@ def learn_als_model():
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-#find_user_ids_to_evaluate()
+# find_user_ids_to_evaluate()
 
-global_eval()
+# global_eval()
+
+keys = redis.keys('encoded_attr_id_idx:*')
+for k in keys:
+    key = k.decode('utf-8')
+    redis.delete(key)
+
+redis.delete('encoded_attr_id_idx:user_id')
+redis.delete('encoded_attr_id_idx:item_id')
+
