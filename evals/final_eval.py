@@ -318,6 +318,7 @@ def global_eval():
     global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
     global_user_count = len(global_users_to_eval)
     print('Global user count:' + str(global_user_count))
+
     # LOAD CTX RECOMMENDATIONS
     ctx_recs = {}
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
@@ -337,6 +338,7 @@ def global_eval():
     ctx_p10_global = 0
     ctx_user_recall_set_global = set()
     als_user_recall_set_global = set()
+
     for user in global_users_to_eval:
         print('evaluating: ' + str(user))
         user_visits_global = get_user_visits(phase, user)
@@ -346,15 +348,12 @@ def global_eval():
         encoded_recs = als.recommendProducts(int(encoded_user_id), 20)
 
         als_recs = []
-        print(encoded_recs)
         for rec in encoded_recs:
-            print(rec)
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             if rec_id != 'None':
                 als_recs.append(rec_id)
             if len(als_recs):
                 break
-        print(als_recs)
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
@@ -378,6 +377,10 @@ def global_eval():
         for cluster, count in user_clusters.items():
             weight_of_cluster = float(count) / total_count
             print(ctx_recs[cluster])
+            if type(ctx_recs[cluster]) != type([]):
+                ctx_recs[cluster] = [ctx_recs[cluster]]
+            print(ctx_recs[cluster])
+
             ctx_recs = ctx_recs[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
             if len(good_recs_10) > 0:
