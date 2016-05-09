@@ -492,6 +492,100 @@ def per_day_eval_cummulative():
         redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
 
 
+def per_day_eval_sole():
+    phase = 'test'
+    als_p3_day_key = 'als:final_eval:metrics:global:p3:day:'
+    als_p5_day_key = 'als:final_eval:metrics:global:p5:day:'
+    als_p10_day_key = 'als:final_eval:metrics:global:p10:day:'
+    als_user_recall_day_key = 'als:final_eval:metrics:global:user_recall:day:'
+
+    ctx_p3_day_key = 'ctx:final_eval:metrics:global:p3:day:'
+    ctx_p5_day_key = 'ctx:final_eval:metrics:global:p5:day:'
+    ctx_p10_day_key = 'ctx:final_eval:metrics:global:p10:day:'
+    ctx_user_recall_day_key = 'ctx:final_eval:metrics:global:user_recall:day:'
+
+    # LOAD CTX RECOMMENDATIONS
+    ctx_recs = {}
+    for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
+        ctx_recs[cluster_id] = get_cluster_rf_recs(cluster_id)
+
+    als = MatrixFactorizationModel.load(sc, os.environ.get('ALS_MODEL_PATH'))
+
+
+    for day in [0, 1, 2, 3, 4]:
+        users_to_eval = redis.smembers('final_eval:users_to_eval_day:' + str(day))
+        users_to_eval_count_day = len(users_to_eval)
+
+        als_p3_day = 0
+        als_p5_day = 0
+        als_p10_day = 0
+
+        ctx_p3_day = 0
+        ctx_p5_day = 0
+        ctx_p10_day = 0
+        ctx_user_recall_set_day = set()
+        als_user_recall_set_day = set()
+        for user in users_to_eval:
+            user_visits_day= get_user_day_visits(phase, day, user)
+            encoded_user_id = Utils.encode_attribute('user_id', user)
+
+            # ALS_COLLAB_RECOMMENDATIONS
+            encoded_recs = als.recommendProducts(int(encoded_user_id), 10)
+
+            als_recs = []
+            for rec in encoded_recs:
+                rec_id = Utils.decode_attribute('item_id', int(rec.product))
+                als_recs.append(rec_id)
+
+            good_recs = [rec for rec in als_recs if rec in user_visits_day]
+            if len(good_recs) > 0:
+                als_user_recall_set_day.update(user)
+            als_p10_day += (float(len(good_recs)) / 10.0)
+
+            good_recs_5 = [rec for rec in als_recs[:5] if rec in user_visits_day]
+            als_p5_day += (float(len(good_recs_5)) / 5.0)
+
+            good_recs_3 = [rec for rec in als_recs[:3] if rec in user_visits_day]
+            als_p3_day += (float(len(good_recs_3)) / 3.0)
+
+            # CONTEXT_CLUSTERING RECS
+
+            user_clusters = get_user_clusters(phase, user)
+            total_count = 0
+
+            for cluster, count in user_clusters:
+                total_count += count
+
+            for cluster, count in user_clusters:
+                weight_of_cluster = float(count) / total_count
+                ctx_recs = ctx_recs[cluster][:10]
+                good_recs_10 = [rec for rec in ctx_recs if rec in user_visits_day]
+                if good_recs_10 > 0:
+                    ctx_user_recall_set_day.update(user)
+                ctx_p10_day += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
+
+                good_recs_5 = [rec for rec in ctx_recs[:5] if rec in user_visits_day]
+                ctx_p5_day += (float(len(good_recs_5)) / 5.0) * weight_of_cluster
+
+                good_recs_3 = [rec for rec in ctx_recs[:3] if rec in user_visits_day]
+                ctx_p3_day += (float(len(good_recs_3)) / 3.0) * weight_of_cluster
+
+            # ES_CONTENT_BASED_RECS
+
+
+            # REDIS_WRITE_RESULTS
+        redis.set(ctx_p3_day_key + str(day), ctx_p3_day / float(users_to_eval_count_day))
+        redis.set(ctx_p5_day_key + str(day), ctx_p5_day / float(users_to_eval_count_day))
+        redis.set(ctx_p10_day_key + str(day), ctx_p10_day / float(users_to_eval_count_day))
+        redis.set(ctx_user_recall_day_key + str(day), len(ctx_user_recall_set_day))
+
+        # REDIS_WRITE_RESULTS
+        redis.set(als_p3_day_key + str(day), als_p3_day / float(users_to_eval_count_day))
+        redis.set(als_p5_day_key + str(day), als_p5_day / float(users_to_eval_count_day))
+        redis.set(als_p10_day_key + str(day), als_p10_day / float(users_to_eval_count_day))
+        redis.set(als_user_recall_day_key + str(day), len(als_user_recall_set_day))
+
+
 def load_train_data_into_redis(files):
     ClusteringModel.load_model()
 
@@ -676,6 +770,6 @@ def load_als_train_data_into_redis(files):
 
 # find_user_ids_to_evaluate()
 
-# global_eval()
+global_eval()
 
-learn_als_model()
+#learn_als_model()
