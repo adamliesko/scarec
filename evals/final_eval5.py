@@ -255,7 +255,7 @@ def find_user_ids_to_evaluate():
                 addicted_ids_day.append(user_id)
         print('Daily users to eval count ' + str(len(addicted_ids_day)))
 
-        redis.set('final_eval:users_to_eval_day:' + str(day), addicted_ids_day)
+        redis.set('final_eval:users_to_eval_day:' + str(day), *set(addicted_ids_day))
 
     # global visits
     addicted_users = redis.sinter('test:final_eval:users_day:0', 'test:final_eval:users_day:1',
@@ -269,7 +269,7 @@ def find_user_ids_to_evaluate():
         if len(visits) > 10:
             addicted_ids.append(user_id)
     print('Global users to eval count ' + str(len(addicted_ids)))
-    redis.set('final_eval:users_to_eval_all', addicted_ids)
+    redis.set('final_eval:users_to_eval_all', *set(addicted_ids))
 
 
 def load_train_data_into_redis(files):
