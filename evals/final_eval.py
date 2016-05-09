@@ -360,6 +360,7 @@ def global_eval():
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
         if len(good_recs) > 0:
+            print('hit als')
             als_user_recall_set_global.add(user)
         als_p10_global += (float(len(good_recs)) / 10.0)
 
@@ -383,6 +384,7 @@ def global_eval():
             ctx_recs = ctx_recs_glob[cluster][:10]
             good_recs_10 = [rec for rec in ctx_recs if int(rec) in user_visits_global]
             if len(good_recs_10) > 0:
+                print('hit ctx')
                 ctx_user_recall_set_global.add(user)
             ctx_p10_global += (float(len(good_recs_10)) / 5.0) * weight_of_cluster
 
@@ -772,9 +774,9 @@ def load_train_visits_into_redis(files):
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-find_user_ids_to_evaluate()
+#find_user_ids_to_evaluate()
 
-# global_eval()
+global_eval()
 
 
 # learn_als_model()
