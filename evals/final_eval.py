@@ -341,14 +341,17 @@ def global_eval():
         encoded_user_id = Utils.encode_attribute('user_id', user)
 
         # ALS_COLLAB_RECOMMENDATIONS
-        encoded_recs = als.recommendProducts(int(encoded_user_id), 10)
+        encoded_recs = als.recommendProducts(int(encoded_user_id), 20)
 
         als_recs = []
         print(encoded_recs)
         for rec in encoded_recs:
             print(rec)
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
-            als_recs.append(rec_id)
+            if rec_id != 'None':
+                als_recs.append(rec_id)
+            if len(als_recs):
+                break
         print(als_recs)
 
         good_recs = [rec for rec in als_recs if int(rec) in user_visits_global]
