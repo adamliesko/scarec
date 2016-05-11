@@ -495,6 +495,8 @@ def global_eval_combined():
 
             ctx_recs = ctx_recs_glob[cluster]
             for r, v in ctx_recs:
+                print(r)
+                print(v)
                 if clustered_recs.get(r, None):
                     clustered_recs[r] = v * weight_of_cluster
                 else:
