@@ -11,7 +11,7 @@ class SumAggregator(Aggregator):
         i = 0
         for recs_group in recommendations_w_values:
             recs_group_weight = weights[i]
-            for rec, val in recs_group.iteritems():
+            for rec, val in recs_group.items():
                 final_recs[rec] += val * recs_group_weight
 
         return final_recs
