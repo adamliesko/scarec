@@ -181,7 +181,7 @@ def get_most_popular_articles():
     sorted_pop_articles =sorted(popular_articles.items(), key=lambda x: -1*int(x[1].decode('utf-8')))
 
     max = int(sorted_pop_articles[0][1].decode('utf-8'))
-    for article, count in sorted_pop_articles.items():
+    for article, count in sorted_pop_articles:
         pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(max)/count)
 
     return pop_articles_dict
