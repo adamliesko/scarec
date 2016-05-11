@@ -709,9 +709,9 @@ def per_day_eval_combined():
 
 
             # ALS_REC
-            als_good_recs_10 = [rec for rec in als_recs.keys() if int(rec) in user_visits_global]
-            als_good_recs_5 = [rec for rec in als_recs.keys()[:5] if int(rec) in user_visits_global]
-            als_good_recs_3 = [rec for rec in als_recs.keys()[:3] if int(rec) in user_visits_global]
+            als_good_recs_10 = [rec for rec in list(als_recs.keys()) if int(rec) in user_visits_global]
+            als_good_recs_5 = [rec for rec in list(als_recs.keys())[:5] if int(rec) in user_visits_global]
+            als_good_recs_3 = [rec for rec in list(als_recs.keys())[:3] if int(rec) in user_visits_global]
             if len(als_good_recs_10) > 0:
                 als_user_recall_set_global.add(user)
             als_p10_global += (float(len(als_good_recs_10)) / 10.0)
@@ -719,9 +719,9 @@ def per_day_eval_combined():
             als_p3_global += (float(len(als_good_recs_3)) / 3.0)
 
             # CTX REC
-            ctx_good_recs_10 = [rec for rec in clustered_recs.keys() if int(rec) in user_visits_global]
-            ctx_good_recs_5 = [rec for rec in clustered_recs.keys()[:5] if int(rec) in user_visits_global]
-            ctx_good_recs_3 = [rec for rec in clustered_recs.keys()[:3] if int(rec) in user_visits_global]
+            ctx_good_recs_10 = [rec for rec in list(clustered_recs.keys()) if int(rec) in user_visits_global]
+            ctx_good_recs_5 = [rec for rec in list(clustered_recs.keys())[:5] if int(rec) in user_visits_global]
+            ctx_good_recs_3 = [rec for rec in list(clustered_recs.keys())[:3] if int(rec) in user_visits_global]
             if len(ctx_good_recs_10) > 0:
                 ctx_pop_user_recall_set_global.add(user)
             ctx_p10_global += (float(len(ctx_good_recs_10)) / 10.0)
