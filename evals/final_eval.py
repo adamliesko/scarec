@@ -187,8 +187,8 @@ def get_most_popular_articles():
     cnt = 0
     for article, count in sorted_pop_articles:
         cnt = +1
-        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(max) / float(count.decode('utf-8')))
-        if cnt == 100:
+        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(count.decode('utf-8'))/float(max))
+        if cnt > 100:
             break
 
     return pop_articles_dict
@@ -508,8 +508,6 @@ def global_eval_combined():
                     clustered_recs[int(r)] = v * weight_of_cluster
                 else:
                     clustered_recs[int(r)] += (v * weight_of_cluster)
-
-        # ES_CONTENT_BASED_RECS
 
         als_recs = {}
         als_recs_redis = redis.zrange('als_recs:user_id:' + str(user), 0, -1, withscores=True)
