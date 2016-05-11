@@ -15,5 +15,5 @@ class ProductAggregator(Aggregator):
                 final_recs[rec] *= (1+val) * recs_group_weight
 
         final_recs = sorted(final_recs.items(), key=lambda x: -1 * float(x[1]))
-
-        return list(final_recs.keys())
+        print(final_recs)
+        return final_recs.keys()
