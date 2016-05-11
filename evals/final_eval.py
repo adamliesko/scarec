@@ -95,9 +95,11 @@ def als_add_user_visit_day(phase, day_no, user_id, item_id):
     key = phase + ':final_eval:als:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
     redis.sadd(key, item_id)
 
+
 def add_user(phase, user_id):
     key = phase + ':final_eval:users'
     redis.sadd(key, user_id)
+
 
 def als_add_user_visit(phase, user_id, item_id):
     key = phase + ':final_eval:als:user:' + str(user_id) + ':user_visits'
@@ -175,16 +177,22 @@ def get_cluster_rf_recs(cluster_id):
             dicties[int(item.decode('utf-8'))] = float(v)
     return dicties
 
+
 def get_most_popular_articles():
     pop_articles_dict = {}
     popular_articles = redis.hgetall(global_popularity_key)
-    sorted_pop_articles =sorted(popular_articles.items(), key=lambda x: -1*int(x[1].decode('utf-8')))
+    sorted_pop_articles = sorted(popular_articles.items(), key=lambda x: -1 * int(x[1].decode('utf-8')))
 
     max = int(sorted_pop_articles[0][1].decode('utf-8'))
+    cnt = 0
     for article, count in sorted_pop_articles:
-        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(max)/float(count.decode('utf-8')))
+        cnt = +1
+        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(max) / float(count.decode('utf-8')))
+        if cnt == 100:
+            break
 
     return pop_articles_dict
+
 
 def load_test_data_into_redis(files, day):
     phase = 'test'
@@ -317,6 +325,7 @@ def find_user_ids_to_evaluate():
         r.sadd('final_eval:users_to_eval_all', int(user_id))
     r.execute()
 
+
 def global_eval():
     phase = 'test'
     als_p3_global_key = 'als:final_eval:metrics:global:p3'
@@ -365,7 +374,7 @@ def global_eval():
             rec_id = Utils.decode_attribute('item_id', int(rec.product))
             if rec_id != 'None':
                 als_recs.append(rec_id)
-                redis.zadd('als_recs:user_id:'+str(user), rec_id, rec.rating)
+                redis.zadd('als_recs:user_id:' + str(user), rec_id, rec.rating)
             if len(als_recs) >= 10:
                 break
 
@@ -503,7 +512,7 @@ def global_eval_combined():
         # ES_CONTENT_BASED_RECS
 
         als_recs = {}
-        als_recs_redis = redis.zrange('als_recs:user_id:'+str(user), 0, -1, withscores=True)
+        als_recs_redis = redis.zrange('als_recs:user_id:' + str(user), 0, -1, withscores=True)
         for rec_id, val in als_recs_redis:
             als_recs[int(rec_id.decode('utf-8'))] = float(val)
 
@@ -518,9 +527,8 @@ def global_eval_combined():
         als_pop_p5_global += (float(len(als_pop_good_recs_5)) / 5.0)
         als_pop_p3_global += (float(len(als_pop_good_recs_3)) / 3.0)
 
-
         # CTX POP REC
-        ctx_pop_recs = ProductAggregator.merge_recommendations(clustered_recs, pop_recs, [1,5])
+        ctx_pop_recs = ProductAggregator.merge_recommendations(clustered_recs, pop_recs, [1, 5])
         ctx_pop_good_recs_10 = [rec for rec in ctx_pop_recs if int(rec) in user_visits_global]
         ctx_pop_good_recs_5 = [rec for rec in ctx_pop_recs[:5] if int(rec) in user_visits_global]
         ctx_pop_good_recs_3 = [rec for rec in ctx_pop_recs[:3] if int(rec) in user_visits_global]
@@ -846,11 +854,12 @@ def load_train_visits_into_redis(files):
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
-#find_user_ids_to_evaluate()
+# find_user_ids_to_evaluate()
 
-#global_eval()
+# global_eval()
 
 global_eval_combined()
+
 
 # learn_als_model()
 
