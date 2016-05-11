@@ -13,7 +13,53 @@ from contextual.context import Context
 
 class ContextEncoder:
     CURRENT_IDX_KEY = 'context_encoder_current_idx'
-    redis.setnx(CURRENT_IDX_KEY, 0)
+    DIM_LIMIT = 300
+
+    @classmethod
+    def encode_context_to_sparse_vec(cls, context):
+        vector_dict = cls.encode_context(context, {})
+        return SparseVector(len(vector_dict.keys()), vector_dict)
+
+    @classmethod
+    def encode_context_to_dense_vec(cls, context):
+        vec_data = numpy.zeros(cls.DIM_LIMIT)  # vector of 0s
+        vector = cls.encode_context(context, vec_data)
+        return DenseVector(vector)
+
+    @classmethod
+    def encode_context(cls, context, vec_data):
+        for key, value in context.items():
+
+            # figure out our property:value pairs
+            if ':' in key:
+                splits = key.split(':')
+                prop = splits[0]
+                value = splits[1]
+            else:
+                prop = key
+            if isinstance(value, list):
+                if len(value) > 0:
+                    value = value[0]
+                else:
+                    continue
+
+            # skip if not included in vector attributes for clustering
+            if prop in Context.MAPPINGS.keys():
+                prop_name = Context.MAPPINGS[prop]
+            else:
+                continue
+
+            # get our vector idx of property:value pairs
+            if prop_name in Context.CLUSTERING_PROPERTIES:
+                property_idx = redis.get(cls.build_context_encoder_key(prop_name, value))
+                if property_idx:
+                    # cache hit
+                    pass
+                else:
+                    # cache miss
+                    property_idx = cls.store_prop_value_pair_to_redis(prop_name, value)
+                vec_data[int(property_idx)] = 1
+        return vec_data
 
     @classmethod
     def current_idx(cls):
@@ -25,76 +71,8 @@ class ContextEncoder:
         redis.set(cls.build_context_encoder_key(prop, value), property_idx)
         return property_idx
 
-    @classmethod
-    def encode_context_to_sparse_vec(cls, context):
-        vec_data = {}  # vector is a dict of 1s where certain dimension in vector is present
-        for key, value in context.items():
-            prop_name = None
-
-            # figure out our property:value pairs
-            if ':' in key:
-                prop = key.split(':')[0]
-                value = key.split(':')[1:]
-            else:
-                prop = key
-            if isinstance(value, list):
-                value = value[0]
-
-            # skip if not included in vector for clustering
-            if prop in Context.MAPPINGS.keys():
-                prop_name = Context.MAPPINGS[prop]
-            else:
-                next
-
-            # get our vector idx of property:value pair
-            if prop_name in Context.CLUSTERING_PROPERTIES:
-                property_idx = redis.get(cls.build_context_encoder_key(prop_name, value))
-                if property_idx:
-                    # cache hit
-                    pass
-                else:
-                    # cache miss
-                    property_idx = cls.store_prop_value_pair_to_redis(prop_name, value)
-                vec_data[int(property_idx)] = 1
-        vec_data[30000] = 1
-        return SparseVector(len(vec_data.keys()), vec_data)
-
-    @classmethod
-    def encode_context_to_dense_vec(cls, context):
-        vec_data = numpy.zeros(300)  # vector is a dict of 1s where certain dimension in vector is present
-        for key, value in context.items():
-            prop_name = None
-
-            # figure out our property:value pairs
-            if ':' in key:
-                prop = key.split(':')[0]
-                value = key.split(':')[1:]
-            else:
-                prop = key
-            if isinstance(value, list):
-                if len(value) > 0:
-                    value = value[0]
-                else:
-                    next
-
-            # skip if not included in vector for clustering
-            if prop in Context.MAPPINGS.keys():
-                prop_name = Context.MAPPINGS[prop]
-            else:
-                next
-
-            # get our vector idx of property:value pair
-            if prop_name in Context.CLUSTERING_PROPERTIES:
-                property_idx = redis.get(cls.build_context_encoder_key(prop_name, value))
-                if property_idx:
-                    # cache hit
-                    pass
-                else:
-                    # cache miss
-                    property_idx = cls.store_prop_value_pair_to_redis(prop_name, value)
-                vec_data[int(property_idx)] = 1
-        return DenseVector(vec_data)
-
     @staticmethod
     def build_context_encoder_key(prop, val):
         return 'context_encoder' + ':' + str(Context.MAPPINGS_INV[prop]) + ':' + str(val)
+
+    redis.setnx(CURRENT_IDX_KEY, 0)

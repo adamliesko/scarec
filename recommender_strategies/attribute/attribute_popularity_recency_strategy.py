@@ -6,8 +6,7 @@ from recommender_strategies.aggregators.product_aggregator import ProductAggrega
 
 class AttributePopularityRecencyStrategy(RecommenderStrategy):
     @staticmethod
-    def recommend_to_user(user_id, attribute, attribute_value, time_interval='4h'):
-        user_visits = RecommenderStrategy.user_impressions(user_id)
+    def recommend_to_user(user_id, user_visits, attribute, attribute_value, time_interval='4h'):
         pop_recommendations = PopularityRecommender.get_most_popular_articles_attribute(time_interval, attribute,
                                                                                         attribute_value)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global(20)

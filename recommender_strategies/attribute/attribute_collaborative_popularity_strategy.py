@@ -7,8 +7,7 @@ from recommenders.popularity_recommender import PopularityRecommender
 
 class AttributeCollaborativePopularityRecencyStrategy(RecommenderStrategy):
     @staticmethod
-    def recommend_to_user(user_id, attribute, attribute_value, time_interval='4h'):
-        user_visits = RecommenderStrategy.user_impressions(user_id)
+    def recommend_to_user(user_id, user_visits, attribute, attribute_value, time_interval='4h'):
         pop_recommendations = PopularityRecommender.get_most_popular_articles_attribute(time_interval, attribute,
                                                                                         attribute_value)
         collab_recommendations = CollaborativeRecommender.recommend_to_user(user_id, 20)

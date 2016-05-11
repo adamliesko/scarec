@@ -1,9 +1,4 @@
 class Context:
-    USABLE_PROPERTIES = []
-    # CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'browser', 'isp', 'os', 'geo_user', 'time_weekday',
-    #                          'do_not_track', 'weather_kind', 'weather', 'geo_publisher', 'lang_user',
-    #                          'geo_user_zip', 'time_hour', 'device_type', 'geo_type']
-
     CLUSTERING_PROPERTIES = ['gender', 'age', 'income', 'time_weekday', 'do_not_track', 'weather_kind', 'lang_user',
                              'time_hour', 'device_type']
 

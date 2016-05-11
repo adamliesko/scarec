@@ -8,8 +8,7 @@ from recommenders.popularity_recommender import PopularityRecommender
 
 class GlobalCollaborativePopularityRecencyStrategy(RecommenderStrategy):
     @staticmethod
-    def recommend_to_user(user_id, time_interval='4h'):
-        user_visits = RecommenderStrategy.user_impressions(user_id)
+    def recommend_to_user(user_id, user_visits, time_interval='4h'):
         pop_recommendations = PopularityRecommender.get_most_popular_articles_global(time_interval)
         collab_recommendations = CollaborativeRecommender.recommend_to_user(user_id, 20)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global()

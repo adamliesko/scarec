@@ -3,6 +3,7 @@ import os
 import time
 import re
 import json
+import math
 from pyspark.mllib.linalg import Vectors, SparseVector, DenseVector
 from pyspark.mllib.regression import LabeledPoint
 
@@ -190,7 +191,7 @@ GBT_DEPTH = [3, 6, 7, 8, 9, 12, 15, 20, 25, 30]
 
 
 def gbt_eval():
-    for cluster_id in [3]:  # [12, 3 ]:
+    for cluster_id in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]:  # [12, 3 ]:
         print('Cluster:' + str(cluster_id))
         articles_key = "eval:classifiers:cluster_visits:" + str(cluster_id)
         positive = set()
@@ -220,10 +221,12 @@ def gbt_eval():
                 print(labelsAndPredictions.take(1))
                 testMSE = labelsAndPredictions.map(lambda v: calc_mse(v)).sum() / \
                           float(test_data.count())
+                testRMSE = math.sqrt(testMSE)
 
                 redis.set('eval:gbt:' + model_id + 'cluster_id:' + str(cluster_id) + ':mse:', str(testMSE))
+                redis.set('eval:gbt:' + model_id + 'cluster_id:' + str(cluster_id) + ':rmse:', str(testRMSE))
 
-                print('Test Mean Squared Error = ' + str(testMSE))
+                print('Test Mean Squared Error = ' + str(testRMSE))
                 print(model.toDebugString())
 
 gbt_eval()

@@ -5,13 +5,15 @@ from recommender_strategies.aggregators.product_aggregator import ProductAggrega
 
 
 class GlobalPopularityRecencyStrategy(RecommenderStrategy):
-    @staticmethod
-    def recommend_to_user(user_id, time_interval='4h'):
+    POP_WEIGHT = 3
+    RECENCY_WEIGHT = 1
+
+    @classmethod
+    def recommend_to_user(cls, user_id, user_visits,time_interval='4h'):
         pop_recommendations = PopularityRecommender.get_most_popular_articles_global(time_interval)
         recency_recommendations = RecencyRecommender.get_most_recent_articles_global()
 
-        recommendations = ProductAggregator.merge_recommendations([3, 1],
+        recommendations = ProductAggregator.merge_recommendations([cls.POP_WEIGHT, cls.RECENCY_WEIGHT],
                                                                   [pop_recommendations, recency_recommendations])
-        user_visits = RecommenderStrategy.user_impressions(user_id)
         final_recommendations = sorted([r for r, score in recommendations.items() if r not in user_visits])
         return final_recommendations

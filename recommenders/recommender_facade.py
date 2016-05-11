@@ -1,5 +1,7 @@
 from recommenders.popularity_recommender import PopularityRecommender
 from recommender_strategies import recommender_strategies
+from models.impression import Impression
+
 
 class RecommenderFacade:
     ALGORITHM_STRATEGY_MAP = {
@@ -29,7 +31,7 @@ class RecommenderFacade:
         '19': 'GlobalRecencyStrategy'
     }
 
-    BEST_PERFORMING_TIME_INTERVAL = '4'
+    BEST_PERFORMING_TIME_INTERVAL = '4h'
 
     @classmethod
     def recommend_to_user(cls, recommendation_req, algorithm_no, time_interval=BEST_PERFORMING_TIME_INTERVAL):
@@ -41,15 +43,18 @@ class RecommenderFacade:
             if isinstance(algorithm, str):
                 recommendations = cls.global_based_recommendations(algorithm, time_interval, user_id)
             else:
-                recommendations = cls.attribute_based_recommendations(algorithm, recommendation_req, time_interval, user_id)
+                recommendations = cls.attribute_based_recommendations(algorithm, recommendation_req, time_interval,
+                                                                      user_id)
 
             if len(recommendations) >= limit:
                 recommended_articles = [int(r) for r in recommendations[0:limit].keys()]
             else:
-                global_most_popular = PopularityRecommender.get_most_popular_articles_global('4h', limit)
+                global_most_popular = PopularityRecommender.get_most_popular_articles_global(
+                    cls.BEST_PERFORMING_TIME_INTERVAL, limit)
                 recommended_articles = [int(r) for r in list(global_most_popular.keys())]
         else:
-            global_most_popular = PopularityRecommender.get_most_popular_articles_global('4h', limit)
+            global_most_popular = PopularityRecommender.get_most_popular_articles_global(
+                cls.BEST_PERFORMING_TIME_INTERVAL, limit)
             recommended_articles = [int(r) for r in list(global_most_popular.keys())]
         return recommended_articles
 
@@ -61,12 +66,16 @@ class RecommenderFacade:
         klazz = algorithm['class']
         StrategyCls = globals()[klazz]
         rec_func = getattr(StrategyCls, 'recommend_to_user')
-        recommendations = rec_func(user_id, attribute, attribute_value, time_interval)
+        recommendations = rec_func(user_id, cls.user_visits(user_id), attribute, attribute_value, time_interval)
         return recommendations
 
     @classmethod
     def global_based_recommendations(cls, algorithm, time_interval, user_id):
         StrategyCls = globals()[algorithm]
         rec_func = getattr(StrategyCls, "recommend_to_user")
-        recommendations = rec_func(user_id, time_interval)
+        recommendations = rec_func(user_id, cls.user_visits(user_id), time_interval)
         return recommendations
+
+    @classmethod
+    def user_visits(cls, user_id):
+        return Impression.user_impressions(user_id)

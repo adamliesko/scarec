@@ -22,7 +22,7 @@ class Utils:
         dt = datetime.datetime(dt.year, dt.month, dt.day)
         return int(dt.timestamp())
 
-    @staticmethod  # visit, user for collaborative filtering long to int conversion
+    @staticmethod  # visit, user attributes encoding for collaborative filtering (long to int conversion)
     def encode_attribute(attr, val):
         key = 'encoded:' + str(attr) + ':' + str(val) + ''
         existing_attr_id = redis.get(key)
