@@ -12,8 +12,9 @@ class ProductAggregator(Aggregator):
         for recs_group in recommendations_w_values:
             recs_group_weight = weights[i]
             for rec, val in recs_group.items():
-                final_recs[rec] *= (1+val) * recs_group_weight
+                final_recs[rec] *= (1 + val) * recs_group_weight
 
         final_recs = sorted(final_recs.items(), key=lambda x: -1 * float(x[1]))
-        print(final_recs)
-        return final_recs.keys()
+        final_recs = [item for item, score in final_recs]
+
+        return final_recs

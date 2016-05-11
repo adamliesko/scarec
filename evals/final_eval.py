@@ -186,7 +186,6 @@ def get_most_popular_articles():
 
     return pop_articles_dict
 
-
 def load_test_data_into_redis(files, day):
     phase = 'test'
     ClusteringModel.load_model()
@@ -497,9 +496,9 @@ def global_eval_combined():
             for r, v in ctx_recs:
 
                 if clustered_recs.get(r, None) is None:
-                    clustered_recs[r] = v * weight_of_cluster
+                    clustered_recs[int(r)] = v * weight_of_cluster
                 else:
-                    clustered_recs[r] += (v * weight_of_cluster)
+                    clustered_recs[int(r)] += (v * weight_of_cluster)
 
         # ES_CONTENT_BASED_RECS
 
