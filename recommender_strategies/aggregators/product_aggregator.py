@@ -14,4 +14,4 @@ class ProductAggregator(Aggregator):
             for rec, val in recs_group.items():
                 final_recs[rec] *= (1+val) * recs_group_weight
 
-        return final_recs
+        return final_recs.keys()
