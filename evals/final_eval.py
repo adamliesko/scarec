@@ -12,7 +12,7 @@ sys.path.append(os.environ.get('PYTHONPATH'))
 
 from rediser import redis
 from utils import Utils
-#from spark_context import sc
+# from spark_context import sc
 from clustering.clustering_model import ClusteringModel
 from context import Context
 from context_encoder import ContextEncoder
@@ -131,6 +131,11 @@ def get_user_visits(phase, user_id):
     return [int(v.decode('utf-8')) for v in redis.smembers(key)]
 
 
+def get_user_visits_day(phase, day_no, user_id):
+    key = phase + ':final_eval:user:' + str(user_id) + ':user_visits_day:' + (str(day_no))
+    return [int(v.decode('utf-8')) for v in redis.smembers(key)]
+
+
 def add_user(phase, user_id):
     key = phase + ':final_eval:users'
     redis.sadd(key, user_id)
@@ -181,13 +186,13 @@ def get_cluster_rf_recs(cluster_id):
 def get_most_popular_articles():
     pop_articles_dict = {}
     popular_articles = redis.hgetall(global_popularity_key)
-    sorted_pop_articles = sorted(popular_articles.items(), reverse=True, key=lambda x:  int(x[1].decode('utf-8')))
+    sorted_pop_articles = sorted(popular_articles.items(), reverse=True, key=lambda x: int(x[1].decode('utf-8')))
 
     max = int(sorted_pop_articles[0][1].decode('utf-8'))
     cnt = 0
     for article, count in sorted_pop_articles:
         cnt += 1
-        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(count.decode('utf-8'))/float(max))
+        pop_articles_dict[int(article.decode('utf-8'))] = 1 + (float(count.decode('utf-8')) / float(max))
         if cnt > 100:
             break
 
@@ -559,7 +564,8 @@ def global_eval_combined():
         als_ctx_p3_global += (float(len(als_ctx_good_recs_3)) / 3.0)
 
         # ALS_CTX_POP RECS
-        als_ctx_pop_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, pop_recs, weights=[5,3,1])
+        als_ctx_pop_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, pop_recs,
+                                                                   weights=[5, 3, 1])
         als_ctx_pop_good_recs_10 = [rec for rec in als_ctx_pop_recs if int(rec) in user_visits_global]
         als_ctx_pop_good_recs_5 = [rec for rec in als_ctx_pop_recs[:5] if int(rec) in user_visits_global]
         als_ctx_pop_good_recs_3 = [rec for rec in als_ctx_pop_recs[:3] if int(rec) in user_visits_global]
@@ -594,8 +600,7 @@ def global_eval_combined():
         redis.set(als_ctx_pop_user_recall_global_key, len(als_ctx_pop_user_recall_set_global))
 
 
-
-def per_eval_combined():
+def per_day_eval_combined():
     phase = 'test'
 
     als_p3_global_key = 'als:final_eval:metrics:global:p3'
@@ -628,11 +633,6 @@ def per_eval_combined():
     als_ctx_pop_p10_global_key = 'als_ctx_pop:final_eval:metrics:global:p10'
     als_ctx_pop_user_recall_global_key = 'als_ctx_pop:final_eval:metrics:global:user_recall'
 
-    global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
-    global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
-    global_user_count = len(global_users_to_eval)
-
-    print('Global user count:' + str(global_user_count))
 
     # LOAD CTX RECOMMENDATIONS
     ctx_recs_glob = {}
@@ -641,30 +641,19 @@ def per_eval_combined():
 
     pop_recs = get_most_popular_articles()
 
-    # GLOBAL_EVALS
+    # Daily evals
 
-    als_pop_p3_global = 0
-    als_pop_p5_global = 0
-    als_pop_p10_global = 0
 
-    ctx_pop_p3_global = 0
-    ctx_pop_p5_global = 0
-    ctx_pop_p10_global = 0
+    for day in [0, 1, 2, 3, 4]:
+        
+        als_p3_global = 0
+        als_p5_global = 0
+        als_p10_global = 0
 
-    als_ctx_p3_global = 0
-    als_ctx_p5_global = 0
-    als_ctx_p10_global = 0
-
-    als_ctx_pop_p3_global = 0
-    als_ctx_pop_p5_global = 0
-    als_ctx_pop_p10_global = 0
-
-    ctx_pop_user_recall_set_global = set()
-    als_pop_user_recall_set_global = set()
-    als_ctx_user_recall_set_global = set()
-    als_ctx_pop_user_recall_set_global = set()
-
-    for day in [0,1,2,3,4]:
+        ctx_p3_global = 0
+        ctx_p5_global = 0
+        ctx_p10_global = 0
+    
         als_pop_p3_global = 0
         als_pop_p5_global = 0
         als_pop_p10_global = 0
@@ -681,16 +670,19 @@ def per_eval_combined():
         als_ctx_pop_p5_global = 0
         als_ctx_pop_p10_global = 0
 
+        ctx_user_recall_set_global = set()
+        als_user_recall_set_global = set()
         ctx_pop_user_recall_set_global = set()
         als_pop_user_recall_set_global = set()
         als_ctx_user_recall_set_global = set()
         als_ctx_pop_user_recall_set_global = set()
 
-        global_users_to_eval = redis.smembers('final_eval:users_to_eval_all')
-        global_users_to_eval = [int(user_id.decode('utf-8')) for user_id in global_users_to_eval]
-        for user in global_users_to_eval:
+        day_users_to_eval = redis.smembers('final_eval:users_to_eval_day:' + str(day))
+        day_users_to_eval = [int(user_id.decode('utf-8')) for user_id in day_users_to_eval]
+        day_user_count = len(day_users_to_eval)
+        for user in day_users_to_eval:
             print('evaluating: ' + str(user))
-            user_visits_global = get_user_visits(phase, user)
+            user_visits_global = get_user_visits_day(phase, day, user)
 
             clustered_recs = {}
             user_clusters = get_user_clusters(phase, user)
@@ -714,6 +706,27 @@ def per_eval_combined():
             als_recs_redis = redis.zrange('als_recs:user_id:' + str(user), 0, -1, withscores=True)
             for rec_id, val in als_recs_redis:
                 als_recs[int(rec_id.decode('utf-8'))] = float(val)
+
+
+            # ALS_REC
+            als_good_recs_10 = [rec for rec in als_recs.keys() if int(rec) in user_visits_global]
+            als_good_recs_5 = [rec for rec in als_recs.keys()[:5] if int(rec) in user_visits_global]
+            als_good_recs_3 = [rec for rec in als_recs.keys()[:3] if int(rec) in user_visits_global]
+            if len(als_good_recs_10) > 0:
+                als_user_recall_set_global.add(user)
+            als_p10_global += (float(len(als_good_recs_10)) / 10.0)
+            als_p5_global += (float(len(als_good_recs_5)) / 5.0)
+            als_p3_global += (float(len(als_good_recs_3)) / 3.0)
+
+            # CTX REC
+            ctx_good_recs_10 = [rec for rec in clustered_recs.keys() if int(rec) in user_visits_global]
+            ctx_good_recs_5 = [rec for rec in clustered_recs.keys()[:5] if int(rec) in user_visits_global]
+            ctx_good_recs_3 = [rec for rec in clustered_recs.keys()[:3] if int(rec) in user_visits_global]
+            if len(ctx_good_recs_10) > 0:
+                ctx_pop_user_recall_set_global.add(user)
+            ctx_p10_global += (float(len(ctx_good_recs_10)) / 10.0)
+            ctx_p5_global += (float(len(ctx_good_recs_5)) / 5.0)
+            ctx_p3_global += (float(len(ctx_good_recs_3)) / 3.0)
 
             # ALS_POP_REC
             als_pop_recs = ProductAggregator.merge_recommendations(als_recs, pop_recs)
@@ -749,7 +762,8 @@ def per_eval_combined():
             als_ctx_p3_global += (float(len(als_ctx_good_recs_3)) / 3.0)
 
             # ALS_CTX_POP RECS
-            als_ctx_pop_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, pop_recs, weights=[5,3,1])
+            als_ctx_pop_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, pop_recs,
+                                                                       weights=[5, 3, 1])
             als_ctx_pop_good_recs_10 = [rec for rec in als_ctx_pop_recs if int(rec) in user_visits_global]
             als_ctx_pop_good_recs_5 = [rec for rec in als_ctx_pop_recs[:5] if int(rec) in user_visits_global]
             als_ctx_pop_good_recs_3 = [rec for rec in als_ctx_pop_recs[:3] if int(rec) in user_visits_global]
@@ -760,28 +774,41 @@ def per_eval_combined():
             als_ctx_pop_p3_global += (float(len(als_ctx_pop_good_recs_3)) / 3.0)
 
             # REDIS_WRITE_RESULTS
-            redis.set(ctx_pop_p3_global_key, ctx_pop_p3_global / float(global_user_count))
-            redis.set(ctx_pop_p5_global_key, ctx_pop_p5_global / float(global_user_count))
-            redis.set(ctx_pop_p10_global_key, ctx_pop_p10_global / float(global_user_count))
-            redis.set(ctx_pop_user_recall_global_key, len(ctx_pop_user_recall_set_global))
+            redis.set(ctx_pop_p3_global_key + ':' + str(day), ctx_pop_p3_global / float(day_user_count))
+            redis.set(ctx_pop_p5_global_key + ':' + str(day), ctx_pop_p5_global / float(day_user_count))
+            redis.set(ctx_pop_p10_global_key + ':' + str(day), ctx_pop_p10_global / float(day_user_count))
+            redis.set(ctx_pop_user_recall_global_key + ':' + str(day), len(ctx_pop_user_recall_set_global))
 
             # REDIS_WRITE_RESULTS
-            redis.set(als_pop_p3_global_key, als_pop_p3_global / float(global_user_count))
-            redis.set(als_pop_p5_global_key, als_pop_p5_global / float(global_user_count))
-            redis.set(als_pop_p10_global_key, als_pop_p10_global / float(global_user_count))
-            redis.set(als_pop_user_recall_global_key, len(als_pop_user_recall_set_global))
+            redis.set(als_pop_p3_global_key + ':' + str(day), als_pop_p3_global / float(day_user_count))
+            redis.set(als_pop_p5_global_key + ':' + str(day), als_pop_p5_global / float(day_user_count))
+            redis.set(als_pop_p10_global_key + ':' + str(day), als_pop_p10_global / float(day_user_count))
+            redis.set(als_pop_user_recall_global_key + ':' + str(day), len(als_pop_user_recall_set_global))
 
             # REDIS_WRITE_RESULTS
-            redis.set(als_ctx_p3_global_key, als_ctx_p3_global / float(global_user_count))
-            redis.set(als_ctx_p5_global_key, als_ctx_p5_global / float(global_user_count))
-            redis.set(als_ctx_p10_global_key, als_ctx_p10_global / float(global_user_count))
-            redis.set(als_ctx_user_recall_global_key, len(als_ctx_user_recall_set_global))
+            redis.set(als_ctx_p3_global_key + ':' + str(day), als_ctx_p3_global / float(day_user_count))
+            redis.set(als_ctx_p5_global_key + ':' + str(day), als_ctx_p5_global / float(day_user_count))
+            redis.set(als_ctx_p10_global_key + ':' + str(day), als_ctx_p10_global / float(day_user_count))
+            redis.set(als_ctx_user_recall_global_key + ':' + str(day), len(als_ctx_user_recall_set_global))
 
             # REDIS_WRITE_RESULTS
-            redis.set(als_ctx_pop_p3_global_key, als_ctx_pop_p3_global / float(global_user_count))
-            redis.set(als_ctx_pop_p5_global_key, als_ctx_pop_p5_global / float(global_user_count))
-            redis.set(als_ctx_pop_p10_global_key, als_ctx_pop_p10_global / float(global_user_count))
-            redis.set(als_ctx_pop_user_recall_global_key, len(als_ctx_pop_user_recall_set_global))
+            redis.set(als_ctx_pop_p3_global_key + ':' + str(day), als_ctx_pop_p3_global / float(day_user_count))
+            redis.set(als_ctx_pop_p5_global_key + ':' + str(day), als_ctx_pop_p5_global / float(day_user_count))
+            redis.set(als_ctx_pop_p10_global_key + ':' + str(day), als_ctx_pop_p10_global / float(day_user_count))
+            redis.set(als_ctx_pop_user_recall_global_key + ':' + str(day), len(als_ctx_pop_user_recall_set_global))
+
+            # REDIS_WRITE_RESULTS
+            redis.set(ctx_p3_global_key, ctx_p3_global / float(day_user_count))
+            redis.set(ctx_p5_global_key, ctx_p5_global / float(day_user_count))
+            redis.set(ctx_p10_global_key, ctx_p10_global / float(day_user_count))
+            redis.set(ctx_user_recall_global_key, len(ctx_user_recall_set_global))
+    
+            # REDIS_WRITE_RESULTS
+            redis.set(als_p3_global_key, als_p3_global / float(day_user_count))
+            redis.set(als_p5_global_key, als_p5_global / float(day_user_count))
+            redis.set(als_p10_global_key, als_p10_global / float(day_user_count))
+            redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
+
 
 def per_day_eval_sole():
     phase = 'test'
@@ -1017,17 +1044,6 @@ def learn_als_model():
     redis.set('final_eval:als:time_taken', delta)
 
 
-def load_train_visits_into_redis(files):
-    phase = 'train'
-    for file in files:
-        with open(file) as f:
-            print('processing file:' + file)
-            for line in f:
-                jsond = json.loads(line)
-                user_id = jsond['context']['simple'].get('57', None)
-                add_user(phase, user_id)
-
-
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -1056,26 +1072,7 @@ def load_train_visits_into_redis(files):
 
 # global_eval()
 
-global_eval_combined()
-
+# global_eval_combined()
+per_day_eval_combined()
 
 # learn_als_model()
-
-def fix_redis_keys():
-    keys = redis.keys('decoded:*')
-    for key in keys:
-        redis.delete(key)
-
-    keys = redis.keys("encoded:user_id:*")
-    for key in keys:
-        key = key.decode('utf-8')
-        user_id = key.split(':')[-1]
-        enc = redis.get(key).decode('utf-8')
-        redis.set('decoded:user_id:' + (str(enc)), user_id)
-
-    keys = redis.keys("encoded:item_id:*")
-    for key in keys:
-        key = key.decode('utf-8')
-        item_id = key.split(':')[-1]
-        enc = redis.get(key).decode('utf-8')
-        redis.set('decoded:item_id:' + (str(enc)), item_id)
