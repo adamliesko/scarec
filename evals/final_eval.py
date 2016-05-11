@@ -516,7 +516,12 @@ def global_eval_combined():
         for rec_id, val in als_recs_redis:
             als_recs[int(rec_id.decode('utf-8'))] = float(val)
 
+        print(als_recs)
+        print(pop_recs)
+        print(clustered_recs)
+
         # ALS_POP_REC
+        print(1)
         als_pop_recs = ProductAggregator.merge_recommendations(als_recs, pop_recs)
         als_pop_good_recs_10 = [rec for rec in als_pop_recs if int(rec) in user_visits_global]
         als_pop_good_recs_5 = [rec for rec in als_pop_recs[:5] if int(rec) in user_visits_global]
@@ -526,6 +531,8 @@ def global_eval_combined():
         als_pop_p10_global += (float(len(als_pop_good_recs_10)) / 10.0)
         als_pop_p5_global += (float(len(als_pop_good_recs_5)) / 5.0)
         als_pop_p3_global += (float(len(als_pop_good_recs_3)) / 3.0)
+
+        print(2)
 
         # CTX POP REC
         ctx_pop_recs = ProductAggregator.merge_recommendations(clustered_recs, pop_recs, [1, 5])
