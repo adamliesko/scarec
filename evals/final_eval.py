@@ -23,6 +23,7 @@ from pyspark.mllib.util import MLUtils
 from pyspark.mllib.clustering import KMeans
 
 from recommender_strategies.aggregators.product_aggregator import ProductAggregator
+from recommender_strategies.aggregators.sum_aggregator import SumAggregator
 from pyspark.mllib.linalg import Vectors, SparseVector, DenseVector
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.recommendation import ALS, MatrixFactorizationModel
@@ -514,10 +515,8 @@ def global_eval_combined():
         for rec_id, val in als_recs_redis:
             als_recs[int(rec_id.decode('utf-8'))] = float(val)
 
-
-
         # ALS_POP_REC
-        als_pop_recs = ProductAggregator.merge_recommendations(als_recs, pop_recs)
+        als_pop_recs = SumAggregator.merge_recommendations(als_recs, pop_recs, weights=[5,1])
         als_pop_good_recs_10 = [rec for rec in als_pop_recs if int(rec) in user_visits_global]
         als_pop_good_recs_5 = [rec for rec in als_pop_recs[:5] if int(rec) in user_visits_global]
         als_pop_good_recs_3 = [rec for rec in als_pop_recs[:3] if int(rec) in user_visits_global]
@@ -528,7 +527,7 @@ def global_eval_combined():
         als_pop_p3_global += (float(len(als_pop_good_recs_3)) / 3.0)
 
         # CTX POP REC
-        ctx_pop_recs = ProductAggregator.merge_recommendations(clustered_recs, pop_recs, weights=[1, 5])
+        ctx_pop_recs = SumAggregator.merge_recommendations(clustered_recs, pop_recs, weights=[1, 5])
         ctx_pop_good_recs_10 = [rec for rec in ctx_pop_recs if int(rec) in user_visits_global]
         ctx_pop_good_recs_5 = [rec for rec in ctx_pop_recs[:5] if int(rec) in user_visits_global]
         ctx_pop_good_recs_3 = [rec for rec in ctx_pop_recs[:3] if int(rec) in user_visits_global]
@@ -539,7 +538,7 @@ def global_eval_combined():
         ctx_pop_p3_global += (float(len(ctx_pop_good_recs_3)) / 3.0)
 
         # ALS_CTX REC
-        als_ctx_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, weights=[5, 1])
+        als_ctx_recs = SumAggregator.merge_recommendations(als_recs, clustered_recs, weights=[5, 1])
         als_ctx_good_recs_10 = [rec for rec in als_ctx_recs if int(rec) in user_visits_global]
         als_ctx_good_recs_5 = [rec for rec in als_ctx_recs[:5] if int(rec) in user_visits_global]
         als_ctx_good_recs_3 = [rec for rec in als_ctx_recs[:3] if int(rec) in user_visits_global]
@@ -550,7 +549,7 @@ def global_eval_combined():
         als_ctx_p3_global += (float(len(als_ctx_good_recs_3)) / 3.0)
 
         # ALS_CTX_POP RECS
-        als_ctx_pop_recs = ProductAggregator.merge_recommendations(als_recs, clustered_recs, weights=[5, 1])
+        als_ctx_pop_recs = SumAggregator.merge_recommendations(als_recs, clustered_recs, weights=[5, 1])
         als_ctx_pop_good_recs_10 = [rec for rec in als_ctx_pop_recs if int(rec) in user_visits_global]
         als_ctx_pop_good_recs_5 = [rec for rec in als_ctx_pop_recs[:5] if int(rec) in user_visits_global]
         als_ctx_pop_good_recs_3 = [rec for rec in als_ctx_pop_recs[:3] if int(rec) in user_visits_global]
