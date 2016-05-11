@@ -12,7 +12,7 @@ sys.path.append(os.environ.get('PYTHONPATH'))
 
 from rediser import redis
 from utils import Utils
-from spark_context import sc
+#from spark_context import sc
 from clustering.clustering_model import ClusteringModel
 from context import Context
 from context_encoder import ContextEncoder
