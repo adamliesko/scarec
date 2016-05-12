@@ -13,8 +13,9 @@ class SumAggregator(Aggregator):
             recs_group_weight = weights[i]
             for rec, val in recs_group.items():
                 final_recs[rec] += val * recs_group_weight
+            i += 1
 
-        final_recs = sorted(final_recs.items(), key=lambda x: -1 * float(x[1]))
+        final_recs = sorted(final_recs.items(), reverse=True, key=lambda x: float(x[1]))
         final_recs = [item for item, score in final_recs]
 
         return final_recs

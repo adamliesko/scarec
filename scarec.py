@@ -12,6 +12,9 @@ from api.recommendations_resource import RecommendationsResource
 from api.events_resource import EventsResource
 from api.errors_resource import ErrorsResource
 from api.models_resource import ModelsResource
+from initializer import MLInitializer
+
+MLInitializer.init()
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.FileHandler('scarec.log'))

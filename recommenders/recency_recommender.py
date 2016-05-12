@@ -91,6 +91,7 @@ class RecencyRecommender(AbstractRecommender):
     @classmethod
     def update_recent_articles(cls, origin_timestamp, attributes=DEFAULT_RECENCY_ATTRIBUTES):
         cls.__update_recent_articles_global(origin_timestamp)
+        # TODO: add recency pet attribute (domain)
         # for attribute in attributes:
         # cls.__update_recent_articles_attribute(attribute, origin_timestamp)
 
@@ -107,6 +108,7 @@ class RecencyRecommender(AbstractRecommender):
     @classmethod
     def __update_recent_articles_attribute(cls, attribute, origin_timestamp):
         # TODO get actual values for attributes and compute it per attribute:attribute_value key set
+        # TODO we will probably implement only domain in the short run
         attribute_values = cls.most_recent_per_attribute_n(attribute, origin_timestamp)
         for value in attribute_values:
             key = cls.redis_key_for_attribute(attribute, value)
@@ -117,18 +119,19 @@ class RecencyRecommender(AbstractRecommender):
             r.execute()
 
     @classmethod
-    def __update_popular_articles_global(cls, origin_timestamp):
+    def get_most_recent_articles_global(cls, count=100):
+        recent_dictie = {}
         key = cls.redis_key_for_global()
-        articles = cls.most_recent_n(origin_timestamp)
-        r = redis.pipeline()
-        r.delete(key)
-        for article_key in articles:
-            r.zadd(key, article_key, articles[article_key])
-        r.execute()
+        recent_articles = redis.zrange(key, 0, count, withscores=True, desc=True)
+        if len(recent_articles) == 0:
+            return {}
 
-    @classmethod
-    def get_most_recent_articles_global(cls, count=500):
-        redis.zrange(cls.redis_key_for_global(), 0, count, withscores=True, desc=True)
+        max_score = recent_articles[0][1]
+        for article_id, score in recent_articles:
+            if score > 0:  # TODO: do we need to check this condition?
+                recent_dictie[int(article_id.decode('utf-8'))] = (float(score) / max_score) + 1
+
+        return recent_dictie
 
     @staticmethod
     def redis_key_for_global():

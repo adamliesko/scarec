@@ -13,7 +13,6 @@ train_users_items_key = 'eval:als:train_user_items'
 test_users_key = 'eval:als:train_users'
 test_users_items_key = 'eval:als:test_user_items'
 
-
 # LOAD_TRAIN
 
 #
@@ -67,8 +66,6 @@ for user_id in users_ids_to_evaluate:
     visits = redis.smembers('als:eval:test:user_items:' + user)
     if len(visits) > 20:
         user_visits[user] = [int(i) for i in visits]
-
-
 
 # LOAD_DATA_INTO_THE_SPARK_RDD
 print('starting loading data')

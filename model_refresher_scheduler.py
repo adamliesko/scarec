@@ -17,10 +17,9 @@ class ModelRefresherScheduler:
         urllib.request.urlopen("http://localhost:80/ml_models/fr").read()
 
 
-#schedule.every(2).hours.do(ModelRefresherScheduler.update_als_collaborative_model())
-#schedule.every(24).hours.do(ModelRefresherScheduler.update_kmeans_model())
-#schedule.every(24).hours.do(ModelRefresherScheduler.update_rf_models())
-
+# schedule.every(2).hours.do(ModelRefresherScheduler.update_als_collaborative_model())
+# schedule.every(24).hours.do(ModelRefresherScheduler.update_kmeans_model())
+# schedule.every(24).hours.do(ModelRefresherScheduler.update_rf_models())
 
 while True:
     try:

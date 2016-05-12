@@ -147,6 +147,7 @@ def load_data_to_memory():
 
 all_items_rdd = sc.parallelize(load_data_to_memory())
 
+
 def rf_eval():
     for cluster_id in [3]:  # [12, 3 ]:
         print('Cluster:' + str(cluster_id))
@@ -186,12 +187,12 @@ def rf_eval():
                 print(model.toDebugString())
 
 
-GBT_NUMBER_OF_ITERATIONS = [50, 75, 100, 125, 150] #[3, 6, 9, 12, 15, 20, 25, 30, 40, 50, 75, 100, 125, 150]
+GBT_NUMBER_OF_ITERATIONS = [50, 75, 100, 125, 150]  # [3, 6, 9, 12, 15, 20, 25, 30, 40, 50, 75, 100, 125, 150]
 GBT_DEPTH = [3, 6, 7, 8, 9, 12, 15, 20, 25, 30]
 
 
 def gbt_eval():
-    for cluster_id in [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]:  # [12, 3 ]:
+    for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:  # [12, 3 ]:
         print('Cluster:' + str(cluster_id))
         articles_key = "eval:classifiers:cluster_visits:" + str(cluster_id)
         positive = set()
@@ -228,5 +229,6 @@ def gbt_eval():
 
                 print('Test Mean Squared Error = ' + str(testRMSE))
                 print(model.toDebugString())
+
 
 gbt_eval()

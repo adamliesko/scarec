@@ -7,7 +7,9 @@ from spark_context import sc
 
 class ClusteringModel:
     MODEL = None
+    CLUSTERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
 
+    # Predicting from Array/ np.array / Spark Vector
     @classmethod
     def predict_cluster(cls, point):
         cluster = cls.MODEL.predict(point)
@@ -18,7 +20,7 @@ class ClusteringModel:
         model = KMeans.train(parsed_data, k, maxIterations=iterations, runs=1,
                              initializationMode="random")
 
-        model.save(sc, cls.build_model_path(k, iterations))
+        model.save(sc, os.environ.get('KMEANS_MODEL_PATH'))
         return model
 
     @classmethod
@@ -29,11 +31,6 @@ class ClusteringModel:
     @classmethod
     def parse_data(cls, input_data):
         return input_data.map(lambda context: ContextEncoder.encode_context_to_sparse_vec(context))
-
-    @staticmethod
-    def build_model_path(k, iters):
-        return str('kmeans_clustering:' + 'k:' + str(k) + ':iters:' + str(
-            iters))
 
     @classmethod
     def update_model(cls):

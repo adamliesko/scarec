@@ -75,15 +75,16 @@ class Impression:
         self.add_timestamp()
         self.predict_context_cluster()
         self.body['cluster_id'] = self.cluster_id
+        print(self.body)
 
     def add_domain_id(self):
         if self.body.get('item_id', None) is not None:
             domain_id = redis.get('item_domain_pairs:' + str(self.body['item_id']))
             if domain_id:
-                self.body['domain_id'] = domain_id
+                self.body['domain_id'] = int(domain_id.decode('utf-8'))
 
     def add_timestamp(self):
-        self.body['timestamp'] = int(self.extracted_content['timestamp'] / 1000)
+        self.body['timestamp'] = int(self.extracted_content['timestamp'])
 
     def persist(self):
         self.store_impression_to_es()
@@ -119,7 +120,7 @@ class Impression:
         impressions = redis.zrange(key, 0, -1, True)
         return impressions
 
-    @staticmethod # windowed visits for more efficient als model re-learning
+    @staticmethod  # windowed visits for more efficient als model re-learning
     def store_windowed_visit_to_redis(user_id, item_id):
         key_visits_in_last_hour = 'windowed_visits:' + str(
             Utils.round_time_to_last_hour_as_epoch())

@@ -5,6 +5,7 @@ import schedule
 from recommenders.recency_recommender import RecencyRecommender
 from recommenders.popularity_recommender import PopularityRecommender
 
+
 class TrendinessScheduler:
     TIME_DIFFS = {'1h': 60 * 60,
                   '4h': 60 * 60 * 4,

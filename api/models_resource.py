@@ -4,7 +4,8 @@ from classification.random_forester import RandomForester
 from clustering.clustering_model import ClusteringModel
 from recommenders.collaborative_recommender import CollaborativeRecommender
 
-#TODO: make this processing async
+
+# TODO: make this processing async
 class ModelsResource:
     def __init__(self):
         self.logger = logging.getLogger(__name__)

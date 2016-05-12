@@ -8,16 +8,6 @@ class PopularityRecommender(AbstractRecommender):
     DEFAULT_POPULARITY_ATTRIBUTES = ['publisher_id', 'domain_id', 'category_id', 'channel_id', 'cluster_id']
 
     @classmethod
-    def current_most_popular_global(cls, time_interval):
-        key = cls.redis_key_for_global(time_interval)
-        return cls.read_popular_articles_from_redis(key)
-
-    @classmethod
-    def current_most_popular_attribute(cls, time_interval, attribute, value):
-        key = cls.redis_key_for_attribute(time_interval, attribute, value)
-        return cls.read_popular_articles_from_redis(key)
-
-    @classmethod
     def read_popular_articles_from_redis(cls, key):
         articles_with_scores_ary = redis.zrevrange(key, 0, cls.MAX_ARTICLES_RETRIEVED_FROM_REDIS, withscores=True)
         articles_with_scores = dict((article, score) for article, score in articles_with_scores_ary)
@@ -25,6 +15,7 @@ class PopularityRecommender(AbstractRecommender):
 
     @classmethod
     def most_popular_n(cls, origin_timestamp, count=50):
+        print(origin_timestamp)
         body = {
             "size": 0,
             "query": {
@@ -46,10 +37,12 @@ class PopularityRecommender(AbstractRecommender):
         }
 
         res = es.search(index='impressions', body=body)
+
         return cls.build_aggs_dict_global(res)
 
     @classmethod
     def most_popular_per_attribute_n(cls, attribute, origin_timestamp, count=50):
+        print(attribute)
         body = {
             "size": 0,
             "query": {
@@ -80,6 +73,7 @@ class PopularityRecommender(AbstractRecommender):
             }
         }
         res = es.search(index='impressions', body=body)
+
         return cls.build_aggs_dict(res, attribute)
 
     @classmethod
@@ -123,11 +117,12 @@ class PopularityRecommender(AbstractRecommender):
     def __update_popular_articles_global(cls, origin_timestamp, time_interval):
         key = cls.redis_key_for_global(time_interval)
         articles = cls.most_popular_n(origin_timestamp)
-        r = redis.pipeline()
-        r.delete(key)
-        for article_key in articles:
-            r.zadd(key, article_key, articles[article_key])
-        r.execute()
+        if len(articles) > 0:  # delete and update only if there are some
+            r = redis.pipeline()
+            r.delete(key)
+            for article_key in articles:
+                r.zadd(key, article_key, articles[article_key])
+            r.execute()
 
     @staticmethod
     def redis_key_for_global(time_interval):
@@ -139,9 +134,30 @@ class PopularityRecommender(AbstractRecommender):
 
     @classmethod
     def get_most_popular_articles_global(cls, time_interval, count=50):
-        redis.zrange(cls.redis_key_for_global(time_interval), 0, count, withscores=True, desc=True)
+        pop_dictie = {}
+        key = cls.redis_key_for_global(time_interval)
+
+        pop_articles = redis.zrange(key, 0, count, withscores=True, desc=True)
+        if len(pop_articles) == 0:
+            return {}
+
+        max_score = pop_articles[0][1]
+        for article_id, score in pop_articles:
+            pop_dictie[int(article_id.decode('utf-8'))] = (float(score) / max_score) + 1
+
+        return pop_dictie
 
     @classmethod
     def get_most_popular_articles_attribute(cls, time_interval, attribute, attribute_value, count=50):
-        redis.zrange(cls.redis_key_for_attribute(time_interval, attribute, attribute_value), 0, count, withscores=True,
-                     desc=True)
+        pop_dictie = {}
+        key = cls.redis_key_for_attribute(time_interval, attribute, attribute_value)
+
+        pop_articles = redis.zrange(key, 0, count, withscores=True, desc=True)
+        if len(pop_articles) == 0:
+            return {}
+
+        max_score = pop_articles[0][1]
+        for article_id, score in pop_articles:
+            pop_dictie[int(article_id.decode('utf-8'))] = (float(score) / max_score) + 1
+
+        return pop_dictie

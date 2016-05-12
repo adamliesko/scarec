@@ -12,7 +12,7 @@ sys.path.append(os.environ.get('PYTHONPATH'))
 
 from rediser import redis
 from utils import Utils
-# from spark_context import sc
+from spark_context import sc
 from clustering.clustering_model import ClusteringModel
 from context import Context
 from context_encoder import ContextEncoder
@@ -633,7 +633,6 @@ def per_day_eval_combined():
     als_ctx_pop_p10_global_key = 'als_ctx_pop:final_eval:metrics:global:p10'
     als_ctx_pop_user_recall_global_key = 'als_ctx_pop:final_eval:metrics:global:user_recall'
 
-
     # LOAD CTX RECOMMENDATIONS
     ctx_recs_glob = {}
     for cluster_id in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]:
@@ -645,7 +644,7 @@ def per_day_eval_combined():
 
 
     for day in [0, 1, 2, 3, 4]:
-        
+
         als_p3_global = 0
         als_p5_global = 0
         als_p10_global = 0
@@ -653,7 +652,7 @@ def per_day_eval_combined():
         ctx_p3_global = 0
         ctx_p5_global = 0
         ctx_p10_global = 0
-    
+
         als_pop_p3_global = 0
         als_pop_p5_global = 0
         als_pop_p10_global = 0
@@ -706,27 +705,6 @@ def per_day_eval_combined():
             als_recs_redis = redis.zrange('als_recs:user_id:' + str(user), 0, -1, withscores=True)
             for rec_id, val in als_recs_redis:
                 als_recs[int(rec_id.decode('utf-8'))] = float(val)
-
-
-            # ALS_REC
-            als_good_recs_10 = [rec for rec in list(als_recs.keys()) if int(rec) in user_visits_global]
-            als_good_recs_5 = [rec for rec in list(als_recs.keys())[:5] if int(rec) in user_visits_global]
-            als_good_recs_3 = [rec for rec in list(als_recs.keys())[:3] if int(rec) in user_visits_global]
-            if len(als_good_recs_10) > 0:
-                als_user_recall_set_global.add(user)
-            als_p10_global += (float(len(als_good_recs_10)) / 10.0)
-            als_p5_global += (float(len(als_good_recs_5)) / 5.0)
-            als_p3_global += (float(len(als_good_recs_3)) / 3.0)
-
-            # CTX REC
-            ctx_good_recs_10 = [rec for rec in list(clustered_recs.keys()) if int(rec) in user_visits_global]
-            ctx_good_recs_5 = [rec for rec in list(clustered_recs.keys())[:5] if int(rec) in user_visits_global]
-            ctx_good_recs_3 = [rec for rec in list(clustered_recs.keys())[:3] if int(rec) in user_visits_global]
-            if len(ctx_good_recs_10) > 0:
-                ctx_pop_user_recall_set_global.add(user)
-            ctx_p10_global += (float(len(ctx_good_recs_10)) / 10.0)
-            ctx_p5_global += (float(len(ctx_good_recs_5)) / 5.0)
-            ctx_p3_global += (float(len(ctx_good_recs_3)) / 3.0)
 
             # ALS_POP_REC
             als_pop_recs = ProductAggregator.merge_recommendations(als_recs, pop_recs)
@@ -796,18 +774,6 @@ def per_day_eval_combined():
             redis.set(als_ctx_pop_p5_global_key + ':' + str(day), als_ctx_pop_p5_global / float(day_user_count))
             redis.set(als_ctx_pop_p10_global_key + ':' + str(day), als_ctx_pop_p10_global / float(day_user_count))
             redis.set(als_ctx_pop_user_recall_global_key + ':' + str(day), len(als_ctx_pop_user_recall_set_global))
-
-            # REDIS_WRITE_RESULTS
-            redis.set(ctx_p3_global_key, ctx_p3_global / float(day_user_count))
-            redis.set(ctx_p5_global_key, ctx_p5_global / float(day_user_count))
-            redis.set(ctx_p10_global_key, ctx_p10_global / float(day_user_count))
-            redis.set(ctx_user_recall_global_key, len(ctx_user_recall_set_global))
-    
-            # REDIS_WRITE_RESULTS
-            redis.set(als_p3_global_key, als_p3_global / float(day_user_count))
-            redis.set(als_p5_global_key, als_p5_global / float(day_user_count))
-            redis.set(als_p10_global_key, als_p10_global / float(day_user_count))
-            redis.set(als_user_recall_global_key, len(als_user_recall_set_global))
 
 
 def per_day_eval_sole():
@@ -1043,7 +1009,6 @@ def learn_als_model():
     print(str(delta))
     redis.set('final_eval:als:time_taken', delta)
 
-
 # precision at 5
 # presicion at 10
 # kolko userom sme boli schopn odporucit aspon 1
@@ -1064,7 +1029,6 @@ def learn_als_model():
 # load_test_data_into_redis(['/home/rec/PLISTA_DATA/2013-06-11/impression_2013-06-11.log'], 3)
 # load_test_data_into_redis([ '/home/rec/PLISTA_DATA/2013-06-12/impression_2013-06-12.log'], 4)
 
-
 # load_item_domains_into_redis(item_train_files_remote)
 # load_item_domains_into_redis(item_test_files_remote)
 
@@ -1073,6 +1037,5 @@ def learn_als_model():
 # global_eval()
 
 # global_eval_combined()
-per_day_eval_combined()
-
+# per_day_eval_combined()
 # learn_als_model()

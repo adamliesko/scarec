@@ -55,7 +55,7 @@ class Recommendation:
         }
         return index
 
-    # DO NOT PERSIST IT JUST YET, way too slow : TODO: async processing - what about sc (SparkContext) ?!
+    # DO NOT PERSIST IT JUST YET, way too slow : TODO: async processing - what about sc (SparkContext) this will hurt ?!
     def __init__(self, content):
         self.id = None
         self.cluster_id = None
@@ -66,6 +66,7 @@ class Recommendation:
         self.parse_body()
         self.user_id = self.body['user_id']
         self.limit = self.content['limit']
+        self.publisher_id = self.content['publisher_id']
         self.predict_context_cluster()
 
     def parse_body(self):
@@ -97,6 +98,7 @@ class Recommendation:
     def predict_context_cluster(self):
         self.context_vec = ContextEncoder.encode_context_to_dense_vec(self.extracted_content)
         self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
+        return self.cluster_id
 
         # self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
         #  TODO if we are storing it to es, probably not ever needed, do it only for impression
