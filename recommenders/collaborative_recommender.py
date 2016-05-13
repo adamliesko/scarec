@@ -31,7 +31,7 @@ class CollaborativeRecommender(AbstractRecommender):
             return {}
         recs = {}
         for r in recommendations:
-            recs[Utils.decode_attribute('item_id', r.product)] = r.rating
+            recs[int(Utils.decode_attribute('item_id', r.product))] = r.rating
 
         return recs
 
