@@ -84,7 +84,7 @@ class Recommendation:
         if domain_id:
             self.body['domain_id'] = int(domain_id.decode('utf-8'))
         else:  # we don't yet have the id of the domain from the create/update stream in db, what shall we do?
-            raise Exception("not a good choice")
+            self.body['domain_id'] = 0
 
     def add_timestamp(self):
         self.body['timestamp'] = int(time.time() / 1000)
