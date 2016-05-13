@@ -6,6 +6,8 @@ from contextual.context import Context
 from contextual.context_encoder import ContextEncoder
 from clustering.clustering_model import ClusteringModel
 from utils import Utils
+from models.item import Item
+from pyspark.mllib.linalg import Vectors, SparseVector, DenseVector
 
 
 class Impression:
@@ -55,7 +57,8 @@ class Impression:
 
     @classmethod
     def process_new(cls, content):
-        Impression(content)
+        impression = Impression(content)
+        return impression
 
     def __init__(self, content):
         self.cluster_id = None
@@ -75,7 +78,7 @@ class Impression:
         self.add_timestamp()
         self.predict_context_cluster()
         self.body['cluster_id'] = self.cluster_id
-        print(self.body)
+        self.item_id = self.body['item_id']
 
     def add_domain_id(self):
         if self.body.get('item_id', None) is not None:
@@ -113,6 +116,16 @@ class Impression:
         self.context_vec = ContextEncoder.encode_context_to_dense_vec(self.extracted_content)
         self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
         self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
+
+    # TODO: this should be extracted somewhere else, background processing - actually hell of a lot of work
+    # ignoring domain and publisher for now I think
+    # we should probably warm the cache of model per clusters, takes couple ofseconds on first hit
+    def predict_new_item_for_clusters(self):
+        if Item.is_predictable(self.item_id):
+            kws = self.content['context']['clusters'].get('33', {})
+            item_int_content = {int(k): int(v) for k, v in kws.items()}
+            item_vector = SparseVector(300, item_int_content)
+            Item.predict_for_clusters(item_vector, self.item_id)
 
     @classmethod
     def user_impressions(cls, user_id):

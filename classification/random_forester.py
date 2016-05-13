@@ -12,7 +12,7 @@ class RandomForester:
         for k in ClusteringModel.CLUSTERS:
             model_id = 'cluster_id_' + str(k)
             cls.MODELS[k] = RandomForestModel.load(sc, path + '/' + model_id)
-            return cls.MODELS
+        return cls.MODELS
 
     # we will parse and convert to Spark RDD
     @classmethod
@@ -30,6 +30,5 @@ class RandomForester:
         pass
 
     @classmethod
-    def predict_new_item(cls, context, item_id, cluster_id):
-        # TODO
-        pass
+    def predict_new_item(cls, vector, item_id, cluster_id):
+        return cls.MODELS[cluster_id].predict(vector)

@@ -13,4 +13,5 @@ class ItemsResource:
         data = json.loads(body.decode('utf-8'))
         item = Item(data)
         item.process_item_change_event()
+        item.predict_for_clusters()  # TODO: get back to async processing with this
         resp.status = falcon.HTTP_200

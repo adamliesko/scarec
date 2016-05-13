@@ -15,7 +15,6 @@ class PopularityRecommender(AbstractRecommender):
 
     @classmethod
     def most_popular_n(cls, origin_timestamp, count=50):
-        print(origin_timestamp)
         body = {
             "size": 0,
             "query": {
@@ -42,7 +41,6 @@ class PopularityRecommender(AbstractRecommender):
 
     @classmethod
     def most_popular_per_attribute_n(cls, attribute, origin_timestamp, count=50):
-        print(attribute)
         body = {
             "size": 0,
             "query": {

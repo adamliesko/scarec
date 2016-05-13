@@ -4,7 +4,7 @@ from recommenders.contextual_recommender import ContextualRecommender
 from recommender_strategies.aggregators.product_aggregator import ProductAggregator
 
 
-class GlobalHybridPopularityStrategy(RecommenderStrategy):
+class GlobalHybridStrategy(RecommenderStrategy):
     CTX_WEIGHT = 2
     ALS_WEIGHT = 4
 

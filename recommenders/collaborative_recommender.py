@@ -20,9 +20,13 @@ class CollaborativeRecommender(AbstractRecommender):
     REGULARIZATION_PARAMETER = 0.1
 
     @classmethod  # using translated values of item and user - because of mapping to integer
+    # we should do this on bg and not like this sync slow ..
     def recommend_to_user(cls, user_id, recs_count=10):
         translated_user_id = Utils.encode_attribute('user_id', user_id)
-        recommendations = cls.MODEL.recommendProducts(int(translated_user_id), recs_count)
+        try:
+            recommendations = cls.MODEL.recommendProducts(int(translated_user_id), recs_count)
+        except Exception:
+            return {}
         recommendations = [Utils.decode_attribute('item_id', r.product) for r in recommendations]
         return recommendations
 

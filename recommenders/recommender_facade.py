@@ -1,5 +1,5 @@
 from models.impression import Impression
-
+import random
 # classes are dynamically / meta-programatically used in recommender strategies/facade - tag it?
 
 # UNUSED, MISSING IMPLEMENTATION
@@ -26,10 +26,10 @@ from recommender_strategies.globalized.global_popularity_recency_strategy import
 from recommender_strategies.globalized.global_popularity_strategy import GlobalPopularityStrategy
 from recommender_strategies.globalized.global_recency_strategy import GlobalRecencyStrategy
 from recommender_strategies.globalized.global_popularity_recency_strategy import GlobalPopularityRecencyStrategy
-from recommender_strategies.globalized.global_hybrid_strategy import GlobalHybridPopularityStrategy
 from recommender_strategies.globalized.global_hybrid_popularity_strategy import GlobalHybridPopularityStrategy
 from recommender_strategies.globalized.global_context_strategy import GlobalContextStrategy
 from recommender_strategies.globalized.global_context_popularity_strategy import GlobalContextPopularityStrategy
+from recommender_strategies.globalized.global_hybrid_strategy import GlobalHybridStrategy
 
 
 class RecommenderFacade:
@@ -68,6 +68,7 @@ class RecommenderFacade:
 
     BEST_PERFORMING_TIME_INTERVAL = '4h'
     DEFAULT_ALGORITHM_NO = '38'
+    ARRAY_ATTRS = ['channel_id', 'category_id']
 
     @classmethod
     def recommend_to_user(cls, recommendation_req, algorithm_no, time_interval=BEST_PERFORMING_TIME_INTERVAL):
@@ -84,20 +85,24 @@ class RecommenderFacade:
                                                                       user_id)
             recs_len = len(recommendations)
             recommended_articles = recommendations[0:limit]
-
             if recs_len < limit:
                 recommended_articles = recommendations[0:limit]
-                global_most_popular = cls.recommend_to_unknown_user()[:(limit - recs_len)]
+                global_most_popular = cls.recommend_to_unknown_user(recommendation_req)[:(limit - recs_len)]
                 ([recommended_articles.append(r) for r in list(global_most_popular)])
         else:
-            recommended_articles = cls.recommend_to_unknown_user()
+            recommended_articles = cls.recommend_to_unknown_user(recommendation_req)
         return recommended_articles[:limit]
 
     @classmethod
     def attribute_based_recommendations(cls, algorithm, recommendation_req, time_interval, user_id):
-        data = recommendation_req.content
+        data = recommendation_req.body
         attribute = algorithm['attr']
-        attribute_value = data[attribute]
+
+        if attribute in cls.ARRAY_ATTRS:
+            attribute_value = random.choice(data[
+                                                attribute])  # pick a random value, TODO: we should probably aggregate this over all the attr vals available
+        else:
+            attribute_value = data[attribute]
         klazz = algorithm['class']
         StrategyCls = globals()[klazz]  # this is a class ref.
         rec_func = getattr(StrategyCls, 'recommend_to_user')  # this is a closure

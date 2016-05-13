@@ -55,7 +55,7 @@ class Recommendation:
         }
         return index
 
-    # DO NOT PERSIST IT JUST YET, way too slow : TODO: async processing - what about sc (SparkContext) this will hurt ?!
+    # this is way too slow in prod: TODO: async processing - what about sc (SparkContext) this will hurt ?!
     def __init__(self, content):
         self.id = None
         self.cluster_id = None
@@ -66,7 +66,7 @@ class Recommendation:
         self.parse_body()
         self.user_id = self.body['user_id']
         self.limit = self.content['limit']
-        self.publisher_id = self.content['publisher_id']
+        self.publisher_id = self.body['publisher_id']
         self.predict_context_cluster()
 
     def parse_body(self):
@@ -82,7 +82,9 @@ class Recommendation:
     def add_domain_id(self):
         domain_id = redis.get('item_domain_pairs:' + str(self.body['item_id']))
         if domain_id:
-            self.body['domain_id'] = domain_id
+            self.body['domain_id'] = int(domain_id.decode('utf-8'))
+        else:  # we don't yet have the id of the domain from the create/update stream in db, what shall we do?
+            raise Exception("not a good choice")
 
     def add_timestamp(self):
         self.body['timestamp'] = int(time.time() / 1000)
@@ -98,7 +100,8 @@ class Recommendation:
     def predict_context_cluster(self):
         self.context_vec = ContextEncoder.encode_context_to_dense_vec(self.extracted_content)
         self.cluster_id = ClusteringModel.predict_cluster(self.context_vec)
+        self.body['cluster_id'] = self.cluster_id
         return self.cluster_id
 
         # self.body['encoded_context'] = [i for i in range(0, len(self.context_vec)) if self.context_vec[i] == 1]
-        #  TODO if we are storing it to es, probably not ever needed, do it only for impression
+        # TODO if we are storing it to es, probably not ever needed, do it only for impression

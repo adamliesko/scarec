@@ -7,5 +7,5 @@ class MLInitializer:
     @staticmethod
     def init():
         ClusteringModel.load_model()
-        # RandomForester.load_models()
-        # CollaborativeRecommender.load_model()
+        RandomForester.load_models()
+        CollaborativeRecommender.load_model()
